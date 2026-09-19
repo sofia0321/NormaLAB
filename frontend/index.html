@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NormaLAB · Normas legales</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ============================ ENCABEZADO ============================ -->
+  <header class="encabezado">
+    <div>
+      <h1>Normas legales</h1>
+      <p class="subtitulo">Matriz legal: crea, edita y elimina normas.</p>
+    </div>
+    <button id="btn-nueva-norma" class="boton boton-primario">+ Nueva norma</button>
+  </header>
+
+  <!-- ============================ FILTROS ================================ -->
+  <section class="filtros">
+    <div class="campo">
+      <label for="filtro-texto">Buscar</label>
+      <input type="text" id="filtro-texto" placeholder="Título, número o entidad..." />
+    </div>
+    <div class="campo">
+      <label for="filtro-estado">Estado de vigencia</label>
+      <!-- Las <option> de este <select> se llenan con JavaScript
+           (ver js/app.js -> cargarCatalogos()), a partir de lo que
+           devuelve GET /api/catalogos. Aquí solo dejamos la opción
+           fija "Todos". -->
+      <select id="filtro-estado">
+        <option value="">Todos</option>
+      </select>
+    </div>
+  </section>
+
+  <!-- Mensaje de error general (por ejemplo si el backend no responde) -->
+  <p id="mensaje-error" class="mensaje-error" hidden></p>
+
+  <!-- ==================== LISTA DE NORMAS (se llena por JS) ============== -->
+  <!-- app.js dibuja aquí una "tarjeta" (<article>) por cada norma que
+       devuelve GET /api/normas. Ver la función renderizarNormas(). -->
+  <section id="lista-normas" class="lista-normas">
+    <p class="cargando">Cargando normas...</p>
+  </section>
+
+  <!-- ============ FORMULARIO DE CREAR / EDITAR (modal) ==================== -->
+  <!-- Está oculto con class="oculto" (ver css/style.css) hasta que el
+       usuario da clic en "+ Nueva norma" o en "Editar" de alguna
+       tarjeta. app.js le agrega/quita esa clase con classList. -->
+  <div id="fondo-modal" class="fondo-modal oculto">
+    <div class="modal">
+      <div class="modal-encabezado">
+        <h2 id="modal-titulo">Nueva norma</h2>
+        <button id="btn-cerrar-modal" class="boton-cerrar" aria-label="Cerrar">✕</button>
+      </div>
+
+      <!-- Aquí se listan los errores de validación que devuelve el
+           Backend (400 Datos inválidos, ver backend/src/controllers/
+           normasController.js -> validarDatosNorma). -->
+      <ul id="lista-errores" class="lista-errores" hidden></ul>
+
+      <form id="form-norma">
+        <!-- idNorma guarda el id de la norma que se está editando.
+             Si está vacío, el formulario está en modo "crear". -->
+        <input type="hidden" id="idNorma" value="" />
+
+        <div class="campo">
+          <label for="idTipoNorma">Tipo de norma *</label>
+          <!-- Igual que el filtro de estado: las <option> las llena
+               cargarCatalogos() con lo que trae GET /api/catalogos. -->
+          <select id="idTipoNorma" required>
+            <option value="">Selecciona...</option>
+          </select>
+        </div>
+
+        <div class="fila-dos-columnas">
+          <div class="campo">
+            <label for="numero">Número *</label>
+            <input type="text" id="numero" required />
+          </div>
+          <div class="campo">
+            <label for="anio">Año *</label>
+            <input type="number" id="anio" min="1900" max="2100" required />
+          </div>
+        </div>
+
+        <div class="campo">
+          <label for="nombreEntidadEmisora">Entidad emisora *</label>
+          <!-- Campo de texto libre: el Backend busca si ya existe una
+               entidad con ese nombre, o la crea si no existe (ver
+               catalogoModel.js -> obtenerOCrearEntidadEmisora). -->
+          <input type="text" id="nombreEntidadEmisora" placeholder="Ej: Ministerio del Trabajo" required />
+        </div>
+
+        <div class="campo">
+          <label for="titulo">Título *</label>
+          <input type="text" id="titulo" required />
+        </div>
+
+        <div class="campo">
+          <label for="descripcion">Descripción</label>
+          <textarea id="descripcion" rows="2"></textarea>
+        </div>
+
+        <div class="campo">
+          <label for="exigenciaLegal">Exigencia legal</label>
+          <textarea id="exigenciaLegal" rows="2"></textarea>
+        </div>
+
+        <div class="fila-dos-columnas">
+          <div class="campo">
+            <label for="idEstadoVigencia">Estado de vigencia *</label>
+            <select id="idEstadoVigencia" required>
+              <option value="">Selecciona...</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label for="fechaVigencia">Fecha de vigencia</label>
+            <input type="date" id="fechaVigencia" />
+          </div>
+        </div>
+
+        <div class="campo">
+          <label for="responsableCargo">Responsable / cargo</label>
+          <input type="text" id="responsableCargo" placeholder="Ej: Coordinador SST" />
+        </div>
+
+        <div class="modal-acciones">
+          <button type="button" id="btn-cancelar" class="boton boton-secundario">Cancelar</button>
+          <button type="submit" class="boton boton-primario">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!--
+    Orden de los <script>: api.js primero porque app.js lo usa
+    (necesita que las funciones de api.js ya existan). Ambos se
+    cargan al final del <body> para que el HTML ya esté dibujado
+    antes de que el JavaScript intente buscar elementos con
+    document.getElementById(...).
+  -->
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

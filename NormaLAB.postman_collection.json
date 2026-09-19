@@ -1,0 +1,102 @@
+{
+  "info": {
+    "name": "NormaLAB - Backend API (Normas legales)",
+    "description": "Colección para probar el backend de NormaLAB, versión reducida al módulo de Normas legales. Usa la variable {{baseUrl}} (por defecto http://localhost:3000/api). Antes de usar 'Editar norma' o 'Eliminar norma', corre 'Listar normas' y copia un id_norma real a la variable {{idNorma}}.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/api" },
+    { "key": "idNorma", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Salud del servicio",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "Catálogos",
+      "item": [
+        {
+          "name": "Listar catálogos (tipos de norma, entidades, estados de vigencia)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/catalogos"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Normas legales",
+      "item": [
+        {
+          "name": "Listar normas",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/normas",
+              "host": ["{{baseUrl}}"],
+              "path": ["normas"]
+            }
+          }
+        },
+        {
+          "name": "Listar normas (con filtros)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/normas?texto=resolucion&idEstadoVigencia=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["normas"],
+              "query": [
+                { "key": "texto", "value": "resolucion" },
+                { "key": "idEstadoVigencia", "value": "1" },
+                { "key": "idTipoNorma", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Obtener una norma por id",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/normas/{{idNorma}}"
+          }
+        },
+        {
+          "name": "Crear norma",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/normas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idTipoNorma\": 3,\n  \"numero\": \"0312\",\n  \"anio\": 2019,\n  \"nombreEntidadEmisora\": \"Ministerio del Trabajo\",\n  \"titulo\": \"Resolución 0312 de 2019\",\n  \"descripcion\": \"Estándares mínimos del SG-SST\",\n  \"exigenciaLegal\": \"Cumplimiento del SG-SST\",\n  \"idEstadoVigencia\": 1,\n  \"fechaVigencia\": \"2019-02-13\",\n  \"responsableCargo\": \"Coordinador SST\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Editar norma",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/normas/{{idNorma}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idTipoNorma\": 3,\n  \"numero\": \"0312\",\n  \"anio\": 2019,\n  \"idEntidadEmisora\": 1,\n  \"titulo\": \"Resolución 0312 de 2019 (actualizada)\",\n  \"descripcion\": \"Estándares mínimos del SG-SST\",\n  \"exigenciaLegal\": \"Cumplimiento del SG-SST\",\n  \"idEstadoVigencia\": 1,\n  \"fechaVigencia\": \"2019-02-13\",\n  \"responsableCargo\": \"Coordinador SST\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Eliminar norma",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/normas/{{idNorma}}"
+          }
+        }
+      ]
+    }
+  ]
+}

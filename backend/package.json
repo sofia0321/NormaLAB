@@ -1,17 +1,19 @@
 {
-  "name": "backend",
-  "version": "1.0.0",
-  "main": "index.js",
+  "name": "normalab-backend",
+  "version": "2.0.0",
+  "description": "Backend (API REST) de NormaLAB - modulo de Normas legales. Se conecta a una base de datos PostgreSQL EXTERNA (no incluida en el proyecto).",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "dev": "node --watch server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
-    "better-sqlite3": "^11.3.0",
     "cors": "^2.8.6",
-    "express": "^5.2.1"
+    "dotenv": "^16.4.5",
+    "express": "^5.2.1",
+    "pg": "^8.13.1"
   }
 }

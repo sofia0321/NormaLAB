@@ -1,0 +1,4 @@
+# No hay dependencias que instalar (es HTML/CSS/JS puro, sin npm),
+# así que aquí normalmente no hay nada que ignorar. Se deja el
+# archivo por si el editor genera algo local (por ejemplo VS Code).
+.DS_Store

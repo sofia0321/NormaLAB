@@ -1,0 +1,272 @@
+/* ============================================================================
+   style.css — estilos de NormaLAB (módulo Normas legales)
+   ============================================================================
+   Todo el color/tamaño/espaciado de la página vive aquí, separado del
+   HTML (estructura) y del JS (comportamiento). Se usan variables CSS
+   (--algo) en :root para no repetir los mismos colores por todo el
+   archivo: si un día se quiere cambiar el color principal, se cambia
+   en un solo lugar.
+   ============================================================================ */
+
+:root {
+  --color-primario: #2563eb;
+  --color-primario-oscuro: #1d4ed8;
+  --color-texto: #1f2937;
+  --color-texto-secundario: #6b7280;
+  --color-fondo: #f8fafc;
+  --color-tarjeta: #ffffff;
+  --color-borde: #e5e7eb;
+  --radio: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  padding: 24px;
+  max-width: 900px;
+  margin-inline: auto;
+}
+
+/* ---------------------------- Encabezado --------------------------------- */
+.encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.encabezado h1 {
+  margin: 0 0 4px 0;
+  font-size: 24px;
+}
+
+.subtitulo {
+  margin: 0;
+  color: var(--color-texto-secundario);
+  font-size: 14px;
+}
+
+/* ------------------------------ Botones ----------------------------------- */
+.boton {
+  border: none;
+  border-radius: var(--radio);
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.boton-primario {
+  background: var(--color-primario);
+  color: white;
+}
+
+.boton-primario:hover {
+  background: var(--color-primario-oscuro);
+}
+
+.boton-secundario {
+  background: var(--color-borde);
+  color: var(--color-texto);
+}
+
+.boton-cerrar {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--color-texto-secundario);
+}
+
+/* ------------------------------ Filtros ----------------------------------- */
+.filtros {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 160px;
+}
+
+.campo label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-texto-secundario);
+}
+
+.campo input,
+.campo select,
+.campo textarea {
+  padding: 8px 10px;
+  border: 1px solid var(--color-borde);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background: white;
+}
+
+.fila-dos-columnas {
+  display: flex;
+  gap: 12px;
+}
+
+.fila-dos-columnas .campo {
+  flex: 1;
+}
+
+/* --------------------------- Lista de normas ------------------------------ */
+.lista-normas {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cargando,
+.sin-resultados {
+  color: var(--color-texto-secundario);
+  text-align: center;
+  padding: 24px;
+}
+
+.tarjeta-norma {
+  background: var(--color-tarjeta);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  padding: 16px;
+}
+
+.tarjeta-norma-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.tarjeta-norma-encabezado strong {
+  font-size: 15px;
+}
+
+.tarjeta-norma p {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.tarjeta-norma .meta {
+  color: var(--color-texto-secundario);
+  font-size: 13px;
+}
+
+.tarjeta-acciones {
+  margin-top: 10px;
+  display: flex;
+  gap: 14px;
+}
+
+.tarjeta-acciones a {
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--color-primario);
+  text-decoration: none;
+}
+
+.tarjeta-acciones a.eliminar {
+  color: #dc2626;
+}
+
+/* ----------------------------- Pastilla de estado -------------------------- */
+.pastilla {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.pastilla-vigente { background: #dbeafe; color: #1e40af; }
+.pastilla-derogada { background: #e5e7eb; color: #374151; }
+.pastilla-modificada { background: #fef3c7; color: #92400e; }
+.pastilla-default { background: #e5e7eb; color: #374151; }
+
+/* -------------------------------- Mensajes --------------------------------- */
+.mensaje-error {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.lista-errores {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 10px 14px 10px 30px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin: 0 0 12px 0;
+}
+
+/* --------------------------------- Modal ------------------------------------ */
+.oculto {
+  display: none !important;
+}
+
+.fondo-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 16px;
+  overflow-y: auto;
+}
+
+.modal {
+  background: var(--color-tarjeta);
+  border-radius: var(--radio);
+  padding: 20px;
+  width: 100%;
+  max-width: 480px;
+}
+
+.modal-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.modal-encabezado h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+#form-norma {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
