@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block titulo %}{{ norma.nombre_tipo_norma }} {{ norma.numero }} de {{ norma.anio }}{% endblock %}
+{% block contenido %}
+<div class="detalle-cab">
+  <div>
+    <span class="detalle-tipo">{{ norma.nombre_tipo_norma }}</span>
+    <h1>{{ norma.nombre_tipo_norma }} {{ norma.numero }} de {{ norma.anio }}</h1>
+    <p>{{ norma.nombre_entidad_emisora }}</p>
+  </div>
+  <div class="detalle-estado">
+    <span class="badge badge-grande badge-{{ norma.ultimo_estado_cumplimiento|badge }}">{{ norma.ultimo_estado_cumplimiento or 'Sin evaluar' }}</span>
+    <small>Última evaluación: {{ norma.fecha_ultima_evaluacion|fecha }}</small>
+  </div>
+</div>
+
+<div class="acciones-detalle">
+  <a class="btn" href="{{ url_for('normas.lista') }}">&#9664; Volver</a>
+  <a class="btn" href="{{ url_for('normas.editar', id_norma=norma.id_norma) }}">&#9998; Editar</a>
+  <a class="btn btn-primario" href="{{ url_for('cumplimiento.index', tipo=norma.id_tipo_norma, anio=norma.anio, norma=norma.id_norma) }}">&#10003; Registrar seguimiento</a>
+</div>
+
+<div class="grid-detalle">
+  <article class="tarjeta">
+    <h2>Información de la norma</h2>
+    <dl class="datos">
+      <dt>Descripción</dt><dd>{{ norma.descripcion or '—' }}</dd>
+      <dt>Exigencia legal</dt><dd>{{ norma.exigencia_legal or '—' }}</dd>
+      <dt>Registros de evidencia</dt>
+      <dd>{{ norma.registros_evidencia_tipo or '—' }}
+        {% if archivo %}<br><a class="btn btn-sm btn-suave mt" href="{{ url_for('normas.evidencia', nombre=archivo) }}" target="_blank">&#128206; Abrir archivo adjunto</a>{% endif %}
+      </dd>
+    </dl>
+  </article>
+  <article class="tarjeta">
+    <h2>Datos de control</h2>
+    <dl class="datos datos-cortos">
+      <dt>Frecuencia</dt><dd>{{ norma.nombre_frecuencia_seguimiento or '—' }}</dd>
+      <dt>Responsable</dt><dd>{{ norma.responsable_cargo or '—' }}</dd>
+      <dt>Vigencia</dt><dd>{{ norma.nombre_estado_vigencia or '—' }}</dd>
+      <dt>Registrada</dt><dd>{{ norma.fecha_registro|fecha }}</dd>
+    </dl>
+  </article>
+</div>
+
+<article class="tarjeta">
+  <h2>Últimos seguimientos</h2>
+  {% if seguimientos %}
+    <ul class="linea-tiempo">
+      {% for s in seguimientos %}
+        <li>
+          <div class="lt-cab"><strong>{{ s.fecha_evaluacion|fecha }}</strong><span class="badge badge-{{ s.nombre_estado_cumplimiento|badge }}">{{ s.nombre_estado_cumplimiento }}</span></div>
+          {% if s.nombre_responsable %}<small>Responsable: {{ s.nombre_responsable }}</small>{% endif %}
+          {% if s.acciones_realizadas %}<p>{{ s.acciones_realizadas }}</p>{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="vacio">Sin registros de seguimiento.</p>
+  {% endif %}
+</article>
+{% endblock %}

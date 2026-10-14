@@ -1,0 +1,6 @@
+config_local.bat
+uploads/*
+!uploads/.gitkeep
+logs/*
+!logs/.gitkeep
+__pycache__/

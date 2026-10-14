@@ -1,0 +1,66 @@
+name: apolobyteexample_electivav_e8
+services:
+  frontend-ci:
+    container_name: elec5-e-8-frontend
+    build:
+      context: ./frontend
+    ports:
+      - "8081:80"
+    volumes:
+      - ./frontend/static:/usr/share/nginx/html/static:ro
+    depends_on:
+      - backend-ci
+    networks:
+      - internal
+    restart: unless-stopped
+
+  backend-ci:
+    container_name: elec5-e-8-backend
+    build:
+      context: ./backend
+    expose:
+      - "8000"
+    environment:
+      - NORMALAB_DB_HOST=db-ci
+      - NORMALAB_DB_PORT=5432
+      - NORMALAB_DB_NAME=${POSTGRES_DB}
+      - NORMALAB_DB_USER=${POSTGRES_USER}
+      - NORMALAB_DB_PASSWORD=${POSTGRES_PASSWORD}
+      - NORMALAB_SECRET_KEY=${NORMALAB_SECRET_KEY}
+      - NORMALAB_UPLOAD_DIR=/app/uploads
+    volumes:
+      - uploads:/app/uploads
+      - ./frontend/templates:/app/templates:ro
+    depends_on:
+      db-ci:
+        condition: service_healthy
+    networks:
+      - internal
+    restart: unless-stopped
+
+  db-ci:
+    image: postgres:16-alpine
+    container_name: elec5-e-8-db
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - internal
+    restart: unless-stopped
+
+networks:
+  internal:
+    driver: bridge
+
+volumes:
+  pgdata:
+  uploads:

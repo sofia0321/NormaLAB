@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block titulo %}Normas legales{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <div>
+    <h1 class="con-barra">Normas legales</h1>
+    <p class="sub">Consulte, registre y gestione el cumplimiento de la normativa SG-SST.</p>
+  </div>
+  <div class="acciones-enc">
+    <a class="btn" href="{{ url_for('normas.matriz') }}">&#9638; Matriz completa</a>
+    <a class="btn btn-primario" href="{{ url_for('normas.nueva') }}">+ Nueva norma</a>
+  </div>
+</div>
+
+<form class="barra-filtros" method="get">
+  <input type="search" name="q" value="{{ filtros.q }}" placeholder="Buscar por número, título o entidad…" class="campo campo-busqueda">
+  <select name="tipo" class="campo">
+    <option value="">Todos los tipos</option>
+    {% for id, nombre in tipos %}<option value="{{ id }}" {{ 'selected' if filtros.tipo == id }}>{{ nombre }}</option>{% endfor %}
+  </select>
+  <select name="estado" class="campo">
+    <option value="">Todos los estados</option>
+    {% for id, nombre in estados %}<option value="{{ id }}" {{ 'selected' if filtros.estado == id }}>{{ nombre }}</option>{% endfor %}
+  </select>
+  <button class="btn" type="submit">&#128269; Filtrar</button>
+  {% if filtros.q or filtros.tipo or filtros.estado %}<a class="btn btn-texto" href="{{ url_for('normas.lista') }}">Limpiar</a>{% endif %}
+</form>
+{% if error %}<p class="error-texto">{{ error }}</p>{% endif %}
+<p class="conteo">Mostrando {{ normas|length }} de {{ total }} normas</p>
+
+{% if normas %}
+<div class="tabla-envoltura">
+  <table class="tabla">
+    <thead>
+      <tr><th>Norma</th><th>Tipo</th><th>Número / Año</th><th>Entidad</th><th>Cumplimiento</th><th class="centro">Acciones</th></tr>
+    </thead>
+    <tbody>
+      {% for n in normas %}
+      {% set a = asociados.get(n.id_norma, {'seg': 0, 'acc': 0}) %}
+      <tr>
+        <td data-th="Norma"><a class="enlace-fuerte" href="{{ url_for('normas.detalle', id_norma=n.id_norma) }}">{{ n.nombre_tipo_norma }} {{ n.numero }}/{{ n.anio }}</a></td>
+        <td data-th="Tipo">{{ n.nombre_tipo_norma }}</td>
+        <td data-th="Número / Año">{{ n.numero }}/{{ n.anio }}</td>
+        <td data-th="Entidad" class="truncar" title="{{ n.nombre_entidad_emisora }}">{{ n.nombre_entidad_emisora }}</td>
+        <td data-th="Cumplimiento"><span class="badge badge-{{ n.ultimo_estado_cumplimiento|badge }}">{{ n.ultimo_estado_cumplimiento or 'Sin evaluar' }}</span></td>
+        <td data-th="Acciones" class="centro">
+          <div class="iconos">
+            <a class="icono" href="{{ url_for('normas.detalle', id_norma=n.id_norma) }}" title="Ver detalle completo de esta norma" aria-label="Ver detalle">
+              <svg viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></a>
+            <a class="icono" href="{{ url_for('normas.editar', id_norma=n.id_norma) }}" title="Editar esta norma" aria-label="Editar">
+              <svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></a>
+            <form method="post" action="{{ url_for('normas.eliminar', id_norma=n.id_norma) }}"
+                  data-confirmar="Se eliminará la norma «{{ n.nombre_tipo_norma }} {{ n.numero }} de {{ n.anio }}».{% if a.seg %} También se borrarán {{ a.seg }} registro(s) de seguimiento.{% endif %}{% if a.acc %} Tiene {{ a.acc }} acción(es) correctiva(s) registradas en la versión anterior que también se borrarán.{% endif %} Esta acción no se puede deshacer."
+                  data-confirmar-titulo="Eliminar norma">
+              <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+              <button class="icono icono-peligro" type="submit" title="Eliminar esta norma" aria-label="Eliminar">
+                <svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  <div class="tarjeta vacio-grande">
+    <p>No se encontraron normas con los filtros aplicados.</p>
+    <a class="btn btn-primario" href="{{ url_for('normas.nueva') }}">+ Registrar la primera norma</a>
+  </div>
+{% endif %}
+{% endblock %}

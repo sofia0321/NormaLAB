@@ -1,43 +1,19 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+# Claves y contraseñas (NUNCA subir)
+.env
 
-# dependencies
-node_modules/
+# Python
+__pycache__/
+*.pyc
 
-# Expo
-.expo/
-dist/
-web-build/
-expo-env.d.ts
+# Evidencias que suben los usuarios
+backend/uploads/*
+!backend/uploads/.gitkeep
 
-# Native
-.kotlin/
-*.orig.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
+# Logs
+backend/logs/*
 
-# Metro
-.metro-health-check*
-
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-
-# macOS
+# Archivos de Windows / editores
+config_local.bat
+.vscode/
 .DS_Store
-*.pem
-
-# local env files
-.env*.local
-
-# typescript
-*.tsbuildinfo
-
-example
-
-# generated native folders
-/ios
-/android
+Thumbs.db

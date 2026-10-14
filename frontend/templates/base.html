@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}NormaLAB{% endblock %} · NormaLAB</title>
+  <link rel="icon" href="{{ url_for('static', filename='img/logo_universidad.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <button class="menu-toggle" type="button" aria-label="Abrir menú" data-menu-toggle>
+      <span></span><span></span><span></span>
+    </button>
+    <a class="marca" href="{{ url_for('dashboard.index') }}">
+      <span class="marca-logo"><img src="{{ url_for('static', filename='img/logo_universidad.png') }}" alt="Logo UNIMAYOR"></span>
+      <span class="marca-texto">
+        <strong>NormaLAB</strong>
+        <small>Gestión de cumplimiento SG-SST</small>
+      </span>
+    </a>
+    <span class="topbar-inst">{{ APP.institucion }}</span>
+  </header>
+
+  <div class="layout">
+    <nav class="sidebar" data-sidebar>
+      <a href="{{ url_for('dashboard.index') }}" class="nav-item {{ 'activo' if activo == 'dashboard' }}" title="Panel general de indicadores">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="{{ url_for('normas.lista') }}" class="nav-item {{ 'activo' if activo == 'normas' }}" title="Registrar y consultar normas">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h7"/></svg>
+        <span>Normas legales</span>
+      </a>
+      <a href="{{ url_for('cumplimiento.index') }}" class="nav-item {{ 'activo' if activo == 'cumplimiento' }}" title="Seguimiento de cumplimiento">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16.5 9"/></svg>
+        <span>Cumplimiento</span>
+      </a>
+      <div class="sidebar-pie">v{{ APP.version }}</div>
+    </nav>
+
+    <main class="contenido">
+      {% with mensajes = get_flashed_messages(with_categories=true) %}
+        {% if mensajes %}
+          <div class="toasts" role="status">
+            {% for cat, msg in mensajes %}
+              <div class="toast toast-{{ cat }}"><span>{{ msg }}</span><button type="button" aria-label="Cerrar" data-cerrar>&times;</button></div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+      {% block contenido %}{% endblock %}
+    </main>
+  </div>
+
+  <dialog class="modal" id="modal-confirmar">
+    <form method="dialog" class="modal-cuerpo">
+      <h3 data-modal-titulo>Confirmar</h3>
+      <p data-modal-texto></p>
+      <div class="modal-acciones">
+        <button class="btn" value="cancelar">Cancelar</button>
+        <button class="btn btn-peligro" value="ok">Eliminar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

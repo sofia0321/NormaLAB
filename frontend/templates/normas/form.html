@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block titulo %}{{ 'Editar norma' if norma else 'Nueva norma' }}{% endblock %}
+{% macro error_de(campo) %}{% if errores_campo.get(campo) %}<span class="error-campo">{{ errores_campo[campo] }}</span>{% endif %}{% endmacro %}
+{% block contenido %}
+<div class="encabezado">
+  <div>
+    <h1 class="con-barra">{{ 'Editar norma' if norma else 'Registrar nueva norma' }}</h1>
+    <p class="sub">Complete los campos requeridos para {{ 'actualizar' if norma else 'registrar' }} la norma. Los campos con * son obligatorios.</p>
+  </div>
+</div>
+
+{% if errores %}
+  <div class="alerta alerta-err">
+    <strong>Datos inválidos — no se pudo {{ 'actualizar' if norma else 'guardar' }}</strong>
+    <ul>{% for e in errores %}<li>{{ e }}</li>{% endfor %}</ul>
+  </div>
+{% endif %}
+
+<form class="tarjeta formulario" method="post" enctype="multipart/form-data" novalidate data-validar>
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <div class="grid-2">
+    <div class="campo-grupo {{ 'invalido' if errores_campo.tipo }}">
+      <label for="tipo">Tipo de norma *</label>
+      <select id="tipo" name="tipo" class="campo" required>
+        {% for id, nombre in tipos %}<option value="{{ id }}" {{ 'selected' if v.tipo == id|string }}>{{ nombre }}</option>{% endfor %}
+      </select>
+      {{ error_de('tipo') }}
+    </div>
+    <div class="campo-grupo {{ 'invalido' if errores_campo.numero }}">
+      <label for="numero">Número *</label>
+      <input id="numero" name="numero" class="campo" value="{{ v.numero }}" placeholder="Ej: 0312" inputmode="numeric" maxlength="30"
+             required data-regla="numero" data-nombre="Número">
+      {{ error_de('numero') }}
+    </div>
+    <div class="campo-grupo {{ 'invalido' if errores_campo.anio }}">
+      <label for="anio">Año *</label>
+      <input id="anio" name="anio" class="campo" value="{{ v.anio }}" placeholder="Ej: 2019" inputmode="numeric" maxlength="4"
+             required data-regla="anio" data-nombre="Año" data-max="{{ hoy.year }}">
+      {{ error_de('anio') }}
+    </div>
+    <div class="campo-grupo {{ 'invalido' if errores_campo.entidad }}">
+      <label for="entidad">Entidad emisora</label>
+      <input id="entidad" name="entidad" class="campo" value="{{ v.entidad }}" placeholder="Ej: Ministerio de Trabajo" maxlength="250"
+             data-regla="texto" data-nombre="Entidad emisora">
+      {{ error_de('entidad') }}
+    </div>
+    <div class="campo-grupo span-2 {{ 'invalido' if errores_campo.descripcion }}">
+      <label for="descripcion">Descripción / objeto de la norma</label>
+      <textarea id="descripcion" name="descripcion" class="campo" rows="3" data-regla="desc" data-nombre="Descripción"
+                placeholder="Estándares mínimos del Sistema de Gestión de Seguridad y Salud en el Trabajo…">{{ v.descripcion }}</textarea>
+      {{ error_de('descripcion') }}
+    </div>
+    <div class="campo-grupo {{ 'invalido' if errores_campo.frecuencia }}">
+      <label for="frecuencia">Frecuencia de seguimiento</label>
+      <select id="frecuencia" name="frecuencia" class="campo">
+        <option value="">— Sin definir —</option>
+        {% for id, nombre in frecs %}<option value="{{ id }}" {{ 'selected' if v.frecuencia == id|string }}>{{ nombre }}</option>{% endfor %}
+      </select>
+      {{ error_de('frecuencia') }}
+    </div>
+    <div class="campo-grupo {{ 'invalido' if errores_campo.responsable }}">
+      <label for="responsable">Responsable</label>
+      <input id="responsable" name="responsable" class="campo" value="{{ v.responsable }}" placeholder="Nombre o cargo del responsable" maxlength="200"
+             data-regla="texto" data-nombre="Responsable">
+      {{ error_de('responsable') }}
+    </div>
+    <div class="campo-grupo {{ 'invalido' if errores_campo.exigencia }}">
+      <label for="exigencia">Exigencia legal</label>
+      <textarea id="exigencia" name="exigencia" class="campo" rows="4" data-regla="desc" data-nombre="Exigencia legal"
+                placeholder="¿Qué exige la norma a la institución?">{{ v.exigencia }}</textarea>
+      {{ error_de('exigencia') }}
+    </div>
+    <div class="campo-grupo {{ 'invalido' if errores_campo.evidencia or errores_campo.archivo }}">
+      <label for="evidencia">Registros de evidencia</label>
+      <textarea id="evidencia" name="evidencia" class="campo" rows="2" data-regla="desc" data-nombre="Registros de evidencia"
+                placeholder="Describa evidencias o adjunte archivo.">{{ v.evidencia }}</textarea>
+      {{ error_de('evidencia') }}
+      <div class="adjunto">
+        <label class="btn btn-sm btn-suave" for="archivo">&#128228; Adjuntar</label>
+        <input id="archivo" name="archivo" type="file" class="oculto" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" data-archivo>
+        <span class="adjunto-nombre" data-archivo-nombre>
+          {% if archivo_actual %}Actual: <a href="{{ url_for('normas.evidencia', nombre=archivo_actual) }}" target="_blank">{{ archivo_actual }}</a>{% else %}Sin archivo{% endif %}
+        </span>
+      </div>
+      <small class="ayuda">PDF, Word, Excel o imagen · máx. {{ APP.max_evidence_size_mb }} MB</small>
+      {{ error_de('archivo') }}
+    </div>
+  </div>
+  <div class="pie-form">
+    <a class="btn" href="{{ url_for('normas.lista') }}">&#10005; Cancelar</a>
+    <button class="btn btn-primario" type="submit">&#128190; {{ 'Actualizar norma' if norma else 'Guardar norma' }}</button>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block titulo %}Cumplimiento{% endblock %}
+{% macro error_de(campo) %}{% if errores_campo.get(campo) %}<span class="error-campo">{{ errores_campo[campo] }}</span>{% endif %}{% endmacro %}
+{% block contenido %}
+<div class="encabezado">
+  <div>
+    <h1 class="con-barra">Seguimiento de cumplimiento</h1>
+    <p class="sub">Busque una norma, actualice su estado y registre las acciones realizadas.</p>
+  </div>
+</div>
+
+<form class="tarjeta buscador-norma" method="get" action="{{ url_for('cumplimiento.index') }}">
+  <input type="hidden" name="buscar" value="1">
+  <div class="fila-buscar">
+    <label>Tipo de norma
+      <select name="tipo" class="campo">
+        <option value="">Todos</option>
+        {% for id, nombre in tipos %}<option value="{{ id }}" {{ 'selected' if filtros.tipo == id }}>{{ nombre }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Año
+      <select name="anio" class="campo">
+        <option value="">Todos</option>
+        {% for a in anios %}<option value="{{ a }}" {{ 'selected' if filtros.anio == a }}>{{ a }}</option>{% endfor %}
+      </select>
+    </label>
+    <button class="btn" type="submit">&#128269; Buscar norma</button>
+  </div>
+
+  {% if buscado %}
+    {% if encontradas %}
+      <p class="resultado-ok">{{ encontradas|length }} norma(s) encontrada(s). Seleccione una de la lista.</p>
+      <label class="norma-sel">Norma encontrada
+        <select name="norma" class="campo" data-autoenviar>
+          {% for n in encontradas %}
+            <option value="{{ n.id_norma }}" {{ 'selected' if norma and n.id_norma == norma.id_norma }}>{{ n.nombre_tipo_norma }} {{ n.numero }}/{{ n.anio }} — {{ n.titulo[:60] }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    {% else %}
+      <p class="error-texto">No se encontraron normas con esos filtros.</p>
+    {% endif %}
+  {% else %}
+    <p class="sub">Aplique los filtros y pulse <b>Buscar norma</b>.</p>
+  {% endif %}
+  {% if ver_historial %}<input type="hidden" name="historial" value="1">{% endif %}
+</form>
+
+{% if norma %}
+<div class="norma-actual">
+  <div>
+    <strong>{{ norma.nombre_tipo_norma }} {{ norma.numero }} de {{ norma.anio }}</strong>
+    <span>· Última evaluación: {{ ultimo.fecha_evaluacion|fecha if ultimo else 'Sin evaluar' }}</span>
+  </div>
+  <span class="badge badge-{{ (ultimo.nombre_estado_cumplimiento if ultimo else None)|badge }}">{{ ultimo.nombre_estado_cumplimiento if ultimo else 'Sin evaluar' }}</span>
+</div>
+
+<details class="tarjeta historial" {{ 'open' if ver_historial }}>
+  <summary>Historial — {{ historial|length }} registro(s)</summary>
+  {% if historial %}
+  <div class="tabla-envoltura">
+    <table class="tabla">
+      <thead><tr><th>Fecha</th><th>Estado</th><th>Responsable evaluador</th><th>Acciones realizadas</th><th></th></tr></thead>
+      <tbody>
+        {% for reg in historial %}
+          <tr>
+            <td data-th="Fecha">{{ reg.fecha_evaluacion|fecha }}</td>
+            <td data-th="Estado"><span class="badge badge-{{ reg.nombre_estado_cumplimiento|badge }}">{{ reg.nombre_estado_cumplimiento or '—' }}</span></td>
+            <td data-th="Responsable">{{ reg.nombre_responsable or '—' }}</td>
+            <td data-th="Acciones" class="texto-largo">{{ reg.acciones_realizadas or '—' }}</td>
+            <td class="centro">
+              <form method="post" action="{{ url_for('cumplimiento.eliminar', id_seguimiento=reg.id_seguimiento) }}"
+                    data-confirmar="¿Eliminar el registro de seguimiento del {{ reg.fecha_evaluacion|fecha }}?" data-confirmar-titulo="Eliminar seguimiento">
+                <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                <input type="hidden" name="tipo" value="{{ filtros.tipo or '' }}">
+                <input type="hidden" name="anio" value="{{ filtros.anio }}">
+                <input type="hidden" name="norma" value="{{ norma.id_norma }}">
+                <input type="hidden" name="historial" value="1">
+                <button class="icono icono-peligro" type="submit" title="Eliminar este registro" aria-label="Eliminar">
+                  <svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="vacio">Sin registros de seguimiento.</p>
+  {% endif %}
+</details>
+
+<form class="tarjeta formulario" method="post" action="{{ url_for('cumplimiento.guardar') }}" novalidate data-validar>
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <input type="hidden" name="norma" value="{{ norma.id_norma }}">
+  <input type="hidden" name="tipo" value="{{ filtros.tipo or '' }}">
+  <input type="hidden" name="anio" value="{{ filtros.anio }}">
+
+  <div class="fila-estado">
+    <div>
+      <h2>Estado de cumplimiento</h2>
+      <p class="sub">Actualice el estado y registre las acciones realizadas.</p>
+    </div>
+    <select name="estado" class="campo" aria-label="Estado de cumplimiento">
+      {% for id, nombre in estados %}<option value="{{ id }}" {{ 'selected' if v.estado == id|string }}>{{ nombre }}</option>{% endfor %}
+    </select>
+  </div>
+  <hr>
+  <div class="grid-2">
+    <div class="campo-grupo {{ 'invalido' if errores_campo.responsable }}">
+      <label for="responsable">Responsable evaluador <span class="req">*</span></label>
+      <input id="responsable" name="responsable" class="campo" value="{{ v.responsable }}" maxlength="150"
+             placeholder="Nombre del responsable evaluador" required data-regla="texto" data-nombre="Responsable evaluador">
+      {{ error_de('responsable') }}
+    </div>
+    <div class="campo-grupo {{ 'invalido' if errores_campo.fecha }}">
+      <label for="fecha">Fecha de evaluación</label>
+      <input id="fecha" name="fecha" type="date" class="campo" value="{{ v.fecha }}">
+      {{ error_de('fecha') }}
+    </div>
+    <div class="campo-grupo span-2 {{ 'invalido' if errores_campo.acciones }}">
+      <label for="acciones">Acciones realizadas <span class="req">*</span></label>
+      <textarea id="acciones" name="acciones" class="campo" rows="4" required data-regla="desc" data-nombre="Acciones realizadas"
+                placeholder="Describa las acciones realizadas para el cumplimiento…">{{ v.acciones }}</textarea>
+      {{ error_de('acciones') }}
+    </div>
+  </div>
+  <div class="pie-form">
+    <button class="btn btn-primario" type="submit">&#128190; Guardar seguimiento</button>
+  </div>
+</form>
+{% endif %}
+{% endblock %}

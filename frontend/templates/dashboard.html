@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block titulo %}Dashboard{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <div>
+    <h1>Resumen general</h1>
+    <p class="sub">Indicadores de la matriz legal y del estado de cumplimiento.</p>
+  </div>
+  <a class="btn" href="{{ url_for('dashboard.index') }}" title="Recalcular los indicadores con los datos más recientes">&#8635; Actualizar</a>
+</div>
+
+<section class="indicadores">
+  <article class="indicador azul" title="Cantidad total de normas en la matriz legal">
+    <div class="ind-icono"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7"/></svg></div>
+    <div class="ind-valor">{{ total }}</div>
+    <div class="ind-etiqueta">Normas registradas</div>
+  </article>
+  <article class="indicador verde" title="Porcentaje de normas evaluadas como 'Cumple'">
+    <div class="ind-icono"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16.5 9"/></svg></div>
+    <div class="ind-valor">{{ porcentaje }}%</div>
+    <div class="ind-etiqueta">% de cumplimiento</div>
+  </article>
+  <article class="indicador naranja" title="Normas con cumplimiento parcial o en gestión">
+    <div class="ind-icono"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+    <div class="ind-valor">{{ en_proceso }}</div>
+    <div class="ind-etiqueta">En proceso</div>
+  </article>
+  <article class="indicador rojo" title="Normas evaluadas como 'No cumple', requieren acción">
+    <div class="ind-icono"><svg viewBox="0 0 24 24"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17.2v.1"/></svg></div>
+    <div class="ind-valor">{{ no_cumple }}</div>
+    <div class="ind-etiqueta">Incumplimientos</div>
+  </article>
+</section>
+
+<section class="fila-detalle">
+  <article class="tarjeta">
+    <h2>Distribución del estado de cumplimiento</h2>
+    {% if segmentos %}
+      <div class="dona">
+        <svg viewBox="0 0 200 200" role="img" aria-label="Gráfico de dona del estado de cumplimiento">
+          <circle cx="100" cy="100" r="70" fill="none" stroke="#EEF1F8" stroke-width="30"/>
+          {% for s in segmentos %}
+            <circle cx="100" cy="100" r="70" fill="none" stroke="{{ s.color }}" stroke-width="30"
+                    stroke-dasharray="{{ s.dash }}" stroke-dashoffset="{{ s.offset }}"
+                    transform="rotate(-90 100 100)"><title>{{ s.etiqueta }}: {{ s.valor }} ({{ s.pct }}%)</title></circle>
+          {% endfor %}
+          <text x="100" y="96" text-anchor="middle" class="dona-num">{{ evaluadas }}</text>
+          <text x="100" y="118" text-anchor="middle" class="dona-lbl">normas evaluadas</text>
+        </svg>
+        <ul class="leyenda">
+          {% for s in segmentos %}
+            <li><span class="punto" style="background: {{ s.color }}"></span>{{ s.etiqueta }}<b>{{ s.valor }}</b><em>{{ s.pct }}%</em></li>
+          {% endfor %}
+          {% if total > evaluadas %}
+            <li class="sin-eval"><span class="punto"></span>Sin evaluar<b>{{ total - evaluadas }}</b><em></em></li>
+          {% endif %}
+        </ul>
+      </div>
+    {% else %}
+      <p class="vacio">Sin datos de cumplimiento aún. Registre seguimientos en el módulo <a href="{{ url_for('cumplimiento.index') }}">Cumplimiento</a>.</p>
+    {% endif %}
+  </article>
+
+  <article class="tarjeta">
+    <h2>Próximas revisiones</h2>
+    <form class="filtro-periodo" method="get" action="{{ url_for('dashboard.index') }}">
+      <input type="hidden" name="filtrar" value="1">
+      <label>Desde
+        <select name="mes_desde">
+          <option value="">— Mes —</option>
+          {% for m in meses %}<option value="{{ loop.index }}" {{ 'selected' if filtros.mes_desde == loop.index|string }}>{{ m }}</option>{% endfor %}
+        </select>
+        <input type="text" inputmode="numeric" maxlength="4" name="anio_desde" value="{{ filtros.anio_desde }}" aria-label="Año desde">
+      </label>
+      <label>Hasta
+        <select name="mes_hasta">
+          <option value="">— Mes —</option>
+          {% for m in meses %}<option value="{{ loop.index }}" {{ 'selected' if filtros.mes_hasta == loop.index|string }}>{{ m }}</option>{% endfor %}
+        </select>
+        <input type="text" inputmode="numeric" maxlength="4" name="anio_hasta" value="{{ filtros.anio_hasta }}" aria-label="Año hasta">
+      </label>
+      <div class="filtro-botones">
+        <button class="btn btn-primario btn-sm" type="submit">Filtrar</button>
+        <a class="btn btn-sm" href="{{ url_for('dashboard.index') }}">Limpiar</a>
+      </div>
+    </form>
+    {% if error_filtro %}<p class="error-texto">{{ error_filtro }}</p>{% endif %}
+
+    {% if revisiones %}
+      <ul class="revisiones">
+        {% for r in revisiones %}
+          <li class="rev {{ r._clase }}">
+            <a href="{{ url_for('normas.detalle', id_norma=r.id_norma) }}">
+              <span class="rev-titulo">{{ r.titulo }}</span>
+              <span class="rev-meta">{{ r.nombre_tipo }} {{ r.numero }} · {{ r.nombre_frecuencia }}</span>
+            </a>
+            <span class="rev-fecha">{{ r._etiqueta }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% elif not error_filtro %}
+      <p class="vacio">{{ 'No se encontraron próximas revisiones para el período seleccionado.' if filtrado else 'No hay revisiones próximas en los siguientes 3 meses.' }}</p>
+    {% endif %}
+  </article>
+</section>
+{% endblock %}

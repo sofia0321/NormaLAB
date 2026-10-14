@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block titulo %}Matriz completa{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <div>
+    <h1 class="con-barra">Matriz normativa completa</h1>
+    <p class="sub">Todas las normas con su exigencia legal, frecuencia y último estado de cumplimiento.</p>
+  </div>
+  <a class="btn" href="{{ url_for('normas.lista') }}">&#9664; Volver a consulta</a>
+</div>
+
+<form class="barra-filtros" method="get">
+  <select name="tipo" class="campo">
+    <option value="">— Tipo —</option>
+    {% for id, nombre in tipos %}<option value="{{ nombre }}" {{ 'selected' if filtros.tipo == nombre }}>{{ nombre }}</option>{% endfor %}
+  </select>
+  <input type="text" name="anio" value="{{ filtros.anio }}" placeholder="Año" class="campo campo-corto" inputmode="numeric" maxlength="4" data-solo-numeros>
+  <input type="text" name="numero" value="{{ filtros.numero }}" placeholder="Número" class="campo campo-corto">
+  <input type="text" name="entidad" value="{{ filtros.entidad }}" placeholder="Entidad" class="campo">
+  <select name="cumplimiento" class="campo">
+    <option value="">— Cumplimiento —</option>
+    {% for id, nombre in estados %}<option value="{{ nombre }}" {{ 'selected' if filtros.cumplimiento == nombre }}>{{ nombre }}</option>{% endfor %}
+    <option value="Sin evaluar" {{ 'selected' if filtros.cumplimiento == 'Sin evaluar' }}>Sin evaluar</option>
+  </select>
+  <button class="btn btn-primario" type="submit">&#128269; Filtrar</button>
+  <a class="btn btn-texto" href="{{ url_for('normas.matriz') }}">&#10005; Limpiar</a>
+</form>
+{% if error %}<p class="error-texto">{{ error }}</p>{% endif %}
+<p class="conteo">Matriz completa — {{ filas|length }} de {{ total }} norma(s)</p>
+
+{% if filas %}
+<div class="tabla-envoltura">
+  <table class="tabla tabla-matriz">
+    <thead>
+      <tr><th>Tipo</th><th>Número</th><th>Año</th><th>Entidad emisora</th><th>Descripción</th><th>Exigencia legal</th><th>Frecuencia</th><th>Responsable</th><th>Cumplimiento</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for r in filas %}
+      <tr>
+        <td data-th="Tipo">{{ r.tipo }}</td>
+        <td data-th="Número">{{ r.numero }}</td>
+        <td data-th="Año">{{ r.anio }}</td>
+        <td data-th="Entidad">{{ r.entidad_emisora }}</td>
+        <td data-th="Descripción" class="texto-largo">{{ r.descripcion or '—' }}</td>
+        <td data-th="Exigencia legal" class="texto-largo">{{ r.exigencia_legal or '—' }}</td>
+        <td data-th="Frecuencia">{{ r.frecuencia or '—' }}</td>
+        <td data-th="Responsable">{{ r.responsable or '—' }}</td>
+        <td data-th="Cumplimiento"><span class="badge badge-{{ r.cumplimiento|badge }}">{{ r.cumplimiento }}</span></td>
+        <td><a class="icono" href="{{ url_for('normas.detalle', id_norma=r.id_norma) }}" title="Ver detalle completo" aria-label="Ver detalle">
+          <svg viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  <div class="tarjeta vacio-grande"><p>No se encontraron registros que coincidan con los filtros aplicados.</p></div>
+{% endif %}
+{% endblock %}
