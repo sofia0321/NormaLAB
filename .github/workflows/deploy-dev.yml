@@ -1,11 +1,12 @@
+name: Deploy Desarrollo (develop)
 on:
   push:
     branches:
-      - main
+      - develop
   workflow_dispatch:
 jobs:
-  run_pull:
-    name: run pull
+  deploy_dev:
+    name: deploy desarrollo
     runs-on: ubuntu-latest
     steps:
       - name: executing remote ssh commands using ssh
@@ -17,9 +18,18 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            cd /root/projects/ElectivaVNocturno/equipo-8/NormaLAB/
+            cd /root/projects/ElectivaVNocturno/equipo-8/NormaLAB-dev/
             git fetch
-            git checkout ${{ secrets.MAIN_BRANCH }}
-            git pull origin ${{ secrets.MAIN_BRANCH }}
-            docker compose up -d --build -d
+            git checkout develop
+            git pull origin develop
+            cat > .env <<'ENVFILE'
+            COMPOSE_PROJECT_NAME=normalab_dev_e8
+            CONTAINER_PREFIX=elec5-e-8-dev
+            WEB_PORT=8086
+            POSTGRES_USER=${{ secrets.DEV_POSTGRES_USER }}
+            POSTGRES_PASSWORD=${{ secrets.DEV_POSTGRES_PASSWORD }}
+            POSTGRES_DB=${{ secrets.DEV_POSTGRES_DB }}
+            NORMALAB_SECRET_KEY=${{ secrets.DEV_SECRET_KEY }}
+            ENVFILE
+            docker compose up -d --build
             exit

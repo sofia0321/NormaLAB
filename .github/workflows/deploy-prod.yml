@@ -1,0 +1,34 @@
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+jobs:
+  run_pull:
+    name: run pull
+    runs-on: ubuntu-latest
+    steps:
+      - name: executing remote ssh commands using ssh
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          script: |
+            cd /root/projects/ElectivaVNocturno/equipo-8/NormaLAB/
+            git fetch
+            git checkout ${{ secrets.MAIN_BRANCH }}
+            git pull origin ${{ secrets.MAIN_BRANCH }}
+            cat > .env <<'ENVFILE'
+            COMPOSE_PROJECT_NAME=apolobyteexample_electivav_e8
+            CONTAINER_PREFIX=elec5-e-8
+            WEB_PORT=8081
+            POSTGRES_USER=${{ secrets.PROD_POSTGRES_USER }}
+            POSTGRES_PASSWORD=${{ secrets.PROD_POSTGRES_PASSWORD }}
+            POSTGRES_DB=${{ secrets.PROD_POSTGRES_DB }}
+            NORMALAB_SECRET_KEY=${{ secrets.PROD_SECRET_KEY }}
+            ENVFILE
+            docker compose up -d --build
+            exit

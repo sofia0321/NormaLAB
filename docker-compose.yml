@@ -1,11 +1,11 @@
-name: apolobyteexample_electivav_e8
+name: ${COMPOSE_PROJECT_NAME}
 services:
   frontend-ci:
-    container_name: elec5-e-8-frontend
+    container_name: ${CONTAINER_PREFIX}-frontend
     build:
       context: ./frontend
     ports:
-      - "8081:80"
+      - "${WEB_PORT}:80"
     volumes:
       - ./frontend/static:/usr/share/nginx/html/static:ro
     depends_on:
@@ -15,7 +15,7 @@ services:
     restart: unless-stopped
 
   backend-ci:
-    container_name: elec5-e-8-backend
+    container_name: ${CONTAINER_PREFIX}-backend
     build:
       context: ./backend
     expose:
@@ -40,7 +40,7 @@ services:
 
   db-ci:
     image: postgres:16-alpine
-    container_name: elec5-e-8-db
+    container_name: ${CONTAINER_PREFIX}-db
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
