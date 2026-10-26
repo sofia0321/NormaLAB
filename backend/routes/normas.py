@@ -108,8 +108,12 @@ def detalle(id_norma: int):
     if not norma:
         abort(404)
     seguimientos = servicio("cumplimiento").historial(id_norma)[:10]
+    try:  # trazabilidad: quién/cuándo/qué cambió en esta norma (RF-006)
+        historial = servicio("auditoria").historial_de("norma", id_norma)
+    except Exception:
+        historial = []
     return render_template("normas/detalle.html", activo="normas", norma=norma,
-                           seguimientos=seguimientos,
+                           seguimientos=seguimientos, historial=historial,
                            archivo=archivo_evidencia(norma.registros_evidencia_tipo))
 
 

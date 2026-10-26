@@ -36,6 +36,14 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16.5 9"/></svg>
         <span>Cumplimiento</span>
       </a>
+      <a href="{{ url_for('reportes.index') }}" class="nav-item {{ 'activo' if activo == 'reportes' }}" title="Exportar reportes en Excel y PDF">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 17v-4M12 17v-6M15 17v-2"/></svg>
+        <span>Reportes</span>
+      </a>
+      <a href="{{ url_for('auditoria.index') }}" class="nav-item {{ 'activo' if activo == 'auditoria' }}" title="Registro histórico de operaciones">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
+        <span>Auditoría</span>
+      </a>
       <div class="sidebar-pie">v{{ APP.version }}</div>
     </nav>
 

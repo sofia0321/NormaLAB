@@ -51,3 +51,21 @@ class AuditoriaRepository:
         with get_cursor() as cur:
             cur.execute(sql, tuple(parametros))
             return [dict(row) for row in cur.fetchall()]
+
+    def listar_por_entidad(self, entidad_afectada: str, id_entidad: int,
+                           limite: int = 50) -> list[dict]:
+        """Trazabilidad: quién hizo qué, cuándo y qué campos cambió sobre un registro concreto."""
+        with get_cursor() as cur:
+            cur.execute(
+                """
+                SELECT l.id_log, l.tipo_operacion, l.descripcion_registro, l.detalle,
+                       l.fecha_hora, u.nombre_usuario, u.nombre_completo
+                FROM log_auditoria l
+                JOIN usuario u ON u.id_usuario = l.id_usuario
+                WHERE l.entidad_afectada = %s AND l.id_entidad_afectada = %s
+                ORDER BY l.fecha_hora DESC, l.id_log DESC
+                LIMIT %s
+                """,
+                (entidad_afectada, id_entidad, limite),
+            )
+            return [dict(row) for row in cur.fetchall()]

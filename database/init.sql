@@ -142,7 +142,7 @@ CREATE TABLE log_auditoria (
     id_log               BIGSERIAL PRIMARY KEY,
     id_usuario            INTEGER NOT NULL REFERENCES usuario(id_usuario),
     tipo_operacion         VARCHAR(20) NOT NULL
-        CHECK (tipo_operacion IN ('CREACION', 'EDICION', 'ELIMINACION', 'CONSULTA', 'LOGIN', 'LOGOUT')),
+        CHECK (tipo_operacion IN ('CREACION', 'EDICION', 'ELIMINACION', 'EXPORTACION', 'CONSULTA', 'LOGIN', 'LOGOUT')),
     entidad_afectada       VARCHAR(50) NOT NULL,
     id_entidad_afectada    INTEGER,
     descripcion_registro   VARCHAR(300),
@@ -152,6 +152,29 @@ CREATE TABLE log_auditoria (
 CREATE INDEX idx_log_fecha ON log_auditoria (fecha_hora DESC);
 CREATE INDEX idx_log_entidad ON log_auditoria (entidad_afectada);
 
+-- Auditoría: índice por tipo + log inmutable (ver migrations/001)
+-- Índice para el filtro por tipo de operación (RF-015: respuesta < 3 s).
+CREATE INDEX IF NOT EXISTS idx_log_tipo ON log_auditoria (tipo_operacion, fecha_hora DESC);
+
+-- Log inmutable (RF-014, regla de negocio): nadie puede editar ni borrar registros,
+--    ni siquiera la propia aplicación.
+CREATE OR REPLACE FUNCTION bloquear_modificacion_log() RETURNS trigger AS $$
+BEGIN
+    RAISE EXCEPTION 'El log de auditoría es de solo lectura: la operación % no está permitida.', TG_OP;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_log_inmutable ON log_auditoria;
+CREATE TRIGGER trg_log_inmutable
+    BEFORE UPDATE OR DELETE ON log_auditoria
+    FOR EACH ROW EXECUTE FUNCTION bloquear_modificacion_log();
+
+DROP TRIGGER IF EXISTS trg_log_sin_truncate ON log_auditoria;
+CREATE TRIGGER trg_log_sin_truncate
+    BEFORE TRUNCATE ON log_auditoria
+    FOR EACH STATEMENT EXECUTE FUNCTION bloquear_modificacion_log();
+
+
 CREATE TABLE reporte_generado (
     id_reporte       SERIAL PRIMARY KEY,
     tipo_reporte      VARCHAR(60) NOT NULL,
@@ -160,7 +183,9 @@ CREATE TABLE reporte_generado (
     fecha_hasta       DATE,
     ruta_archivo      VARCHAR(500) NOT NULL,
     id_usuario        INTEGER NOT NULL REFERENCES usuario(id_usuario),
-    fecha_generacion  TIMESTAMP NOT NULL DEFAULT NOW()
+    fecha_generacion  TIMESTAMP NOT NULL DEFAULT NOW(),
+    filtros           JSONB,
+    total_registros   INTEGER
 );
 
 INSERT INTO rol (nombre_rol) VALUES ('Profesional SST'), ('Administrador'), ('Auditor');

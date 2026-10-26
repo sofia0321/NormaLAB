@@ -40,6 +40,28 @@ class SeguimientoRepository:
             )
             return [self._map(row) for row in cur.fetchall()]
 
+    def obtener_por_id(self, id_seguimiento: int) -> Optional[SeguimientoCumplimiento]:
+        with get_cursor() as cur:
+            cur.execute(_SELECT_BASE + " WHERE sc.id_seguimiento = %s", (id_seguimiento,))
+            row = cur.fetchone()
+            return self._map(row) if row else None
+
+    def contar_por_estado(self, id_norma: int, nombre_estado: str,
+                          excluyendo: Optional[int] = None) -> int:
+        """Cuántos seguimientos de la norma tienen ese estado (opcionalmente sin contar uno)."""
+        with get_cursor() as cur:
+            cur.execute(
+                """
+                SELECT COUNT(*) AS n
+                FROM seguimiento_cumplimiento sc
+                JOIN estado_cumplimiento ec ON ec.id_estado_cumplimiento = sc.id_estado_cumplimiento
+                WHERE sc.id_norma = %s AND ec.nombre_estado = %s
+                  AND (%s IS NULL OR sc.id_seguimiento <> %s)
+                """,
+                (id_norma, nombre_estado, excluyendo, excluyendo),
+            )
+            return cur.fetchone()["n"]
+
     def eliminar(self, id_seguimiento: int) -> None:
         with get_cursor(commit=True) as cur:
             cur.execute(

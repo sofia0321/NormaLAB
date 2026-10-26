@@ -25,14 +25,33 @@ class CumplimientoService:
 
     def eliminar_seguimiento(self, id_seguimiento: int) -> None:
         self._auth.verificar_permiso_escritura()
+        seg = self._repo.obtener_por_id(id_seguimiento)
+        if not seg:
+            raise ValidacionError("El seguimiento que intenta eliminar no existe.")
+
+        # RF-011 (regla de negocio): no se elimina el único soporte del estado 'Cumple'.
+        if seg.nombre_estado_cumplimiento == "Cumple":
+            ultimo = self._repo.obtener_ultimo_por_norma(seg.id_norma)
+            otros_cumple = self._repo.contar_por_estado(seg.id_norma, "Cumple",
+                                                        excluyendo=id_seguimiento)
+            if ultimo and ultimo.id_seguimiento == id_seguimiento and otros_cumple == 0:
+                raise ValidacionError(
+                    "No es posible eliminar este seguimiento: es el único soporte del estado "
+                    "'Cumple' de la norma. Actualice primero el estado de cumplimiento.")
+
         usuario = self._auth.obtener_usuario_actual()
+        # Se audita DESPUÉS de eliminar: el log es inmutable y no debe registrar fallos.
+        self._repo.eliminar(id_seguimiento)
         self._auditoria_repo.registrar(LogAuditoria(
             id_log=None, id_usuario=usuario.id_usuario, tipo_operacion="ELIMINACION",
             entidad_afectada="seguimiento_cumplimiento",
             id_entidad_afectada=id_seguimiento,
-            descripcion_registro="Eliminación de seguimiento de cumplimiento registrado en el sistema.",
+            descripcion_registro=f"Eliminación de seguimiento — {self._nombre_norma(seg.id_norma)}",
+            detalle={"id_norma": seg.id_norma, "estado": seg.nombre_estado_cumplimiento,
+                     "fecha_evaluacion": str(seg.fecha_evaluacion),
+                     "responsable": seg.nombre_responsable,
+                     "acciones_realizadas": seg.acciones_realizadas},
         ))
-        self._repo.eliminar(id_seguimiento)
 
     def _nombre_norma(self, id_norma: int) -> str:
         try:
@@ -56,8 +75,11 @@ class CumplimientoService:
             seguimiento.id_norma, seguimiento.fecha_evaluacion
         )
         self._auditoria_repo.registrar(LogAuditoria(
-            id_log=None, id_usuario=usuario.id_usuario, tipo_operacion="EDICION",
+            id_log=None, id_usuario=usuario.id_usuario, tipo_operacion="CREACION",
             entidad_afectada="seguimiento_cumplimiento", id_entidad_afectada=creado.id_seguimiento,
             descripcion_registro=f"Seguimiento de cumplimiento — {self._nombre_norma(seguimiento.id_norma)}",
+            detalle={"id_norma": seguimiento.id_norma, "estado": creado.id_estado_cumplimiento,
+                     "fecha_evaluacion": str(seguimiento.fecha_evaluacion),
+                     "responsable": seguimiento.nombre_responsable},
         ))
         return creado

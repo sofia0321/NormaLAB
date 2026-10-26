@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block titulo %}Auditoría{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <div>
+    <h1 class="con-barra">Log de auditoría</h1>
+    <p class="sub">Registro histórico de creaciones, ediciones, eliminaciones y exportaciones. Es de solo lectura: no se puede editar ni eliminar.</p>
+  </div>
+</div>
+
+<form class="barra-filtros" method="get">
+  <select name="tipo" class="campo" aria-label="Tipo de operación">
+    <option value="">— Todas las operaciones —</option>
+    {% for clave, nombre in tipos.items() %}<option value="{{ clave }}" {{ 'selected' if filtro_tipo == clave }}>{{ nombre }}</option>{% endfor %}
+  </select>
+  <button class="btn btn-primario" type="submit">&#128269; Filtrar</button>
+  <a class="btn btn-texto" href="{{ url_for('auditoria.index') }}">&#10005; Limpiar</a>
+</form>
+{% if error %}<p class="error-texto">{{ error }}</p>{% endif %}
+
+{% if not error %}
+<p class="conteo">{{ registros|length }} registro(s){% if filtro_tipo %} de tipo «{{ tipos[filtro_tipo] }}»{% endif %}</p>
+  {% if registros %}
+  <div class="tabla-envoltura">
+    <table class="tabla">
+      <thead><tr><th>Fecha</th><th>Hora</th><th>Usuario</th><th>Operación</th><th>Entidad</th><th>Registro</th></tr></thead>
+      <tbody>
+      {% for r in registros %}
+        <tr>
+          <td data-th="Fecha">{{ r.fecha_hora.strftime('%d/%m/%Y') }}</td>
+          <td data-th="Hora">{{ r.fecha_hora.strftime('%H:%M:%S') }}</td>
+          <td data-th="Usuario">{{ r.nombre_completo }}</td>
+          <td data-th="Operación">{{ tipos.get(r.tipo_operacion, r.tipo_operacion) }}</td>
+          <td data-th="Entidad">{{ r.entidad_afectada }}{% if r.id_entidad_afectada %} #{{ r.id_entidad_afectada }}{% endif %}</td>
+          <td data-th="Registro" class="texto-largo">{{ r.descripcion_registro or '—' }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="tarjeta vacio-grande">
+      <p>{% if filtro_tipo %}No hay registros para el criterio aplicado.{% else %}Aún no hay operaciones registradas en el log.{% endif %}</p>
+    </div>
+  {% endif %}
+{% endif %}
+{% endblock %}

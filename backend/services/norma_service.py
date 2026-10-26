@@ -84,11 +84,13 @@ class NormaService:
             )
 
         self._repo.actualizar(norma)
+        cambios = self._diferencias(anterior, norma)
         self._auditoria_repo.registrar(LogAuditoria(
             id_log=None, id_usuario=usuario.id_usuario, tipo_operacion="EDICION",
             entidad_afectada="norma", id_entidad_afectada=norma.id_norma,
             descripcion_registro=f"Actualización de norma — {norma.nombre_tipo_norma} {norma.numero}/{norma.anio}: {norma.titulo[:60]}",
-            detalle={"version_anterior": siguiente_version - 1},
+            # RF-006: qué campos se modificaron (antes → después), además de quién y cuándo.
+            detalle={"version_anterior": siguiente_version - 1, "campos_modificados": cambios},
         ))
 
     def historial_versiones(self, id_norma: int) -> list[dict]:
@@ -110,12 +112,15 @@ class NormaService:
         if not norma:
             raise ValidacionError(f"No existe una norma con id {id_norma}.")
         usuario = self._auth.obtener_usuario_actual()
+        # Primero se elimina y SOLO si tuvo éxito se audita: el log es inmutable, así que
+        # no puede quedar un registro de una eliminación que en realidad falló.
+        self._repo.eliminar(id_norma)
         self._auditoria_repo.registrar(LogAuditoria(
             id_log=None, id_usuario=usuario.id_usuario, tipo_operacion="ELIMINACION",
             entidad_afectada="norma", id_entidad_afectada=id_norma,
             descripcion_registro=f"Eliminación: {norma.nombre_tipo_norma} {norma.numero}/{norma.anio} — {norma.titulo}",
+            detalle={"datos_eliminados": self._serializar(norma)},
         ))
-        self._repo.eliminar(id_norma)
 
     @staticmethod
     def _validar(norma: Norma) -> None:
@@ -146,4 +151,15 @@ class NormaService:
             "id_tipo_norma": norma.id_tipo_norma, "id_entidad_emisora": norma.id_entidad_emisora,
             "fecha_vigencia": norma.fecha_vigencia,
             "id_frecuencia_seguimiento": norma.id_frecuencia_seguimiento,
+            "exigencia_legal": norma.exigencia_legal,
+            "responsable_cargo": norma.responsable_cargo,
+            "registros_evidencia_tipo": norma.registros_evidencia_tipo,
         }
+
+    @classmethod
+    def _diferencias(cls, antes: Norma, despues: Norma) -> dict:
+        """Campos cuyo valor cambió: {campo: {"antes": ..., "despues": ...}} (valores como texto)."""
+        a, d = cls._serializar(antes), cls._serializar(despues)
+        texto = lambda v: None if v is None else str(v)  # noqa: E731 (JSON-safe: fechas, etc.)
+        return {k: {"antes": texto(a[k]), "despues": texto(d[k])}
+                for k in d if texto(a.get(k)) != texto(d[k])}

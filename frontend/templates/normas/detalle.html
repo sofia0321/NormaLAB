@@ -58,4 +58,34 @@
     <p class="vacio">Sin registros de seguimiento.</p>
   {% endif %}
 </article>
+
+<article class="tarjeta">
+  <h2>Historial de cambios (trazabilidad)</h2>
+  {% if historial %}
+    <div class="tabla-envoltura">
+      <table class="tabla">
+        <thead><tr><th>Fecha y hora</th><th>Usuario</th><th>Operación</th><th>Detalle</th></tr></thead>
+        <tbody>
+        {% for h in historial %}
+          <tr>
+            <td data-th="Fecha">{{ h.fecha_hora.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+            <td data-th="Usuario">{{ h.nombre_completo }}</td>
+            <td data-th="Operación">{{ h.tipo_operacion }}</td>
+            <td data-th="Detalle" class="texto-largo">
+              {% set cambios = (h.detalle or {}).get('campos_modificados') %}
+              {% if cambios %}
+                {% for campo, c in cambios.items() %}
+                  <div><strong>{{ campo }}:</strong> {{ c.antes or '—' }} &rarr; {{ c.despues or '—' }}</div>
+                {% endfor %}
+              {% else %}{{ h.descripcion_registro or '—' }}{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="vacio">Sin cambios registrados.</p>
+  {% endif %}
+</article>
 {% endblock %}

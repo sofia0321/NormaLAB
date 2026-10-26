@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block titulo %}Reportes{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <div>
+    <h1 class="con-barra">Reportes</h1>
+    <p class="sub">Exporte la matriz normativa o el listado de incumplimientos en Excel (.xlsx) o PDF. Cada exportación queda registrada en la auditoría.</p>
+  </div>
+</div>
+
+<article class="tarjeta">
+  <h2>Generar reporte</h2>
+  <form method="get" action="{{ url_for('reportes.exportar') }}" class="barra-filtros">
+    <select name="tipo_reporte" class="campo" aria-label="Tipo de reporte">
+      {% for clave, nombre in tipos_reporte.items() %}<option value="{{ clave }}">{{ nombre }}</option>{% endfor %}
+    </select>
+    <select name="tipo" class="campo" aria-label="Tipo de norma">
+      <option value="">— Tipo de norma —</option>
+      {% for id, nombre in tipos %}<option value="{{ nombre }}" {{ 'selected' if filtros.tipo == nombre }}>{{ nombre }}</option>{% endfor %}
+    </select>
+    <input type="text" name="anio" value="{{ filtros.anio }}" placeholder="Año" class="campo campo-corto" inputmode="numeric" maxlength="4" data-solo-numeros>
+    <input type="text" name="numero" value="{{ filtros.numero }}" placeholder="Número" class="campo campo-corto">
+    <input type="text" name="entidad" value="{{ filtros.entidad }}" placeholder="Entidad" class="campo">
+    <select name="cumplimiento" class="campo" aria-label="Cumplimiento">
+      <option value="">— Cumplimiento —</option>
+      {% for id, nombre in estados %}<option value="{{ nombre }}" {{ 'selected' if filtros.cumplimiento == nombre }}>{{ nombre }}</option>{% endfor %}
+      <option value="Sin evaluar" {{ 'selected' if filtros.cumplimiento == 'Sin evaluar' }}>Sin evaluar</option>
+    </select>
+    <button class="btn btn-primario" type="submit" name="formato" value="xlsx">&#128196; Exportar Excel</button>
+    <button class="btn btn-primario" type="submit" name="formato" value="pdf">&#128462; Exportar PDF</button>
+  </form>
+  <p class="ayuda">En «Normas en incumplimiento» el filtro de cumplimiento se fija automáticamente en «No Cumple».</p>
+</article>
+
+<article class="tarjeta">
+  <h2>Reportes generados recientemente</h2>
+  {% if generados %}
+  <div class="tabla-envoltura">
+    <table class="tabla">
+      <thead><tr><th>Fecha y hora</th><th>Reporte</th><th>Formato</th><th>Registros</th><th>Generado por</th><th></th></tr></thead>
+      <tbody>
+      {% for g in generados %}
+        <tr>
+          <td data-th="Fecha">{{ g.fecha_generacion.strftime('%d/%m/%Y %H:%M') }}</td>
+          <td data-th="Reporte">{{ tipos_reporte.get(g.tipo_reporte, g.tipo_reporte) }}</td>
+          <td data-th="Formato">{{ g.formato }}</td>
+          <td data-th="Registros">{{ g.total_registros if g.total_registros is not none else '—' }}</td>
+          <td data-th="Generado por">{{ g.nombre_completo }}</td>
+          <td><a class="btn btn-sm btn-suave" href="{{ url_for('reportes.descargar', id_reporte=g.id_reporte) }}">&#11015; Descargar</a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="vacio">Aún no se ha generado ningún reporte.</p>
+  {% endif %}
+</article>
+{% endblock %}

@@ -6,7 +6,11 @@
     <h1 class="con-barra">Matriz normativa completa</h1>
     <p class="sub">Todas las normas con su exigencia legal, frecuencia y último estado de cumplimiento.</p>
   </div>
-  <a class="btn" href="{{ url_for('normas.lista') }}">&#9664; Volver a consulta</a>
+  <div class="iconos">
+    <a class="btn btn-suave" href="{{ url_for('reportes.exportar', formato='xlsx', tipo_reporte='matriz', **filtros) }}" title="Exportar la matriz (con los filtros actuales) a Excel">&#128196; Excel</a>
+    <a class="btn btn-suave" href="{{ url_for('reportes.exportar', formato='pdf', tipo_reporte='matriz', **filtros) }}" title="Exportar la matriz (con los filtros actuales) a PDF">&#128462; PDF</a>
+    <a class="btn" href="{{ url_for('normas.lista') }}">&#9664; Volver a consulta</a>
+  </div>
 </div>
 
 <form class="barra-filtros" method="get">

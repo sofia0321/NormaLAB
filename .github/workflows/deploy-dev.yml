@@ -32,4 +32,10 @@ jobs:
             NORMALAB_SECRET_KEY=${{ secrets.DEV_SECRET_KEY }}
             ENVFILE
             docker compose up -d --build
+            # Aplica las migraciones SQL (idempotentes) sobre la BD que ya existe.
+            # init.sql solo corre cuando el volumen de Postgres esta vacio.
+            for f in database/migrations/*.sql; do
+              echo ">> aplicando $f"
+              docker compose exec -T db-ci sh -c 'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < "$f"
+            done
             exit
