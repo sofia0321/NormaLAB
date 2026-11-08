@@ -119,7 +119,7 @@ CREATE TABLE evidencia (
 CREATE TABLE estado_accion_correctiva (
     id_estado_accion SERIAL PRIMARY KEY,
     nombre_estado    VARCHAR(20) NOT NULL UNIQUE
-        CHECK (nombre_estado IN ('Abierta', 'En Proceso', 'Cerrada', 'Vencida'))
+        CHECK (nombre_estado IN ('Pendiente', 'En Proceso', 'Cerrada', 'Vencida'))
 );
 
 CREATE TABLE accion_correctiva (
@@ -137,6 +137,9 @@ CREATE TABLE accion_correctiva (
     id_usuario_responsable     INTEGER REFERENCES usuario(id_usuario),
     id_usuario_registro        INTEGER NOT NULL REFERENCES usuario(id_usuario)
 );
+
+CREATE INDEX idx_accion_norma_estado ON accion_correctiva (id_norma, id_estado_accion);
+CREATE INDEX idx_accion_plazo ON accion_correctiva (fecha_compromiso);
 
 CREATE TABLE log_auditoria (
     id_log               BIGSERIAL PRIMARY KEY,
@@ -191,7 +194,7 @@ CREATE TABLE reporte_generado (
 INSERT INTO rol (nombre_rol) VALUES ('Profesional SST'), ('Administrador'), ('Auditor');
 INSERT INTO estado_vigencia (nombre_estado) VALUES ('Vigente'), ('Derogada'), ('Modificada');
 INSERT INTO estado_cumplimiento (nombre_estado) VALUES ('Cumple'), ('No Cumple'), ('En Proceso');
-INSERT INTO estado_accion_correctiva (nombre_estado) VALUES ('Abierta'), ('En Proceso'), ('Cerrada'), ('Vencida');
+INSERT INTO estado_accion_correctiva (nombre_estado) VALUES ('Pendiente'), ('En Proceso'), ('Cerrada'), ('Vencida');
 INSERT INTO tipo_norma (nombre_tipo) VALUES ('Ley'), ('Decreto'), ('Resolución'), ('Circular'), ('Guía');
 INSERT INTO frecuencia_seguimiento (nombre_frecuencia) VALUES ('Mensual'), ('Trimestral'), ('Anual');
 

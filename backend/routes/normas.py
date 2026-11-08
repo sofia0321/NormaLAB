@@ -112,8 +112,14 @@ def detalle(id_norma: int):
         historial = servicio("auditoria").historial_de("norma", id_norma)
     except Exception:
         historial = []
+    try:  # RF-012: las acciones correctivas son visibles desde el detalle de la norma
+        acciones = servicio("acciones").de_norma(id_norma)
+    except Exception:
+        acciones = []
+    puede_accion = servicio("acciones").norma_admite_acciones(norma.ultimo_estado_cumplimiento)
     return render_template("normas/detalle.html", activo="normas", norma=norma,
                            seguimientos=seguimientos, historial=historial,
+                           acciones=acciones, puede_accion=puede_accion,
                            archivo=archivo_evidencia(norma.registros_evidencia_tipo))
 
 

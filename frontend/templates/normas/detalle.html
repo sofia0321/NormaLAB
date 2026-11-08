@@ -60,6 +60,28 @@
 </article>
 
 <article class="tarjeta">
+  <div class="enc-tarjeta">
+    <h2>Acciones correctivas</h2>
+    {% if puede_accion %}<a class="btn btn-sm btn-primario" href="{{ url_for('acciones.nueva', norma=norma.id_norma) }}">+ Registrar acción</a>{% endif %}
+  </div>
+  {% if acciones %}
+    <ul class="linea-tiempo">
+      {% for a in acciones %}
+        <li>
+          <div class="lt-cab"><strong>{{ a.codigo }}</strong>
+            <span class="badge badge-{{ {'Cerrada': 'ok', 'En Proceso': 'warn'}.get(a.estado, 'neutral') }}">{{ a.estado }}</span>
+            {% if a.vencida %}<span class="badge badge-err">&#9888; Vencida</span>{% endif %}</div>
+          <small>Responsable: {{ a.nombre_responsable or '—' }} · Plazo: {{ a.fecha_compromiso|fecha }}</small>
+          <p>{{ a.descripcion }}</p>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="vacio">Sin acciones correctivas{% if not puede_accion %} (solo se registran sobre normas en «No Cumple» o «En Proceso»){% endif %}.</p>
+  {% endif %}
+</article>
+
+<article class="tarjeta">
   <h2>Historial de cambios (trazabilidad)</h2>
   {% if historial %}
     <div class="tabla-envoltura">

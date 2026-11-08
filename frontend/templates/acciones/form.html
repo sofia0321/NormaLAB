@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block titulo %}{{ 'Editar acción correctiva' if accion else 'Nueva acción correctiva' }}{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <div>
+    <h1 class="con-barra">{{ 'Editar acción ' ~ accion.codigo if accion else 'Registrar acción correctiva' }}</h1>
+    <p class="sub">Los campos con * son obligatorios.{% if not accion %} Solo se pueden registrar acciones sobre normas en estado «No Cumple» o «En Proceso».{% endif %}</p>
+  </div>
+</div>
+
+{% if errores %}
+  <div class="alerta alerta-err">
+    <strong>No se pudo {{ 'actualizar' if accion else 'guardar' }}</strong>
+    <ul>{% for e in errores %}<li>{{ e }}</li>{% endfor %}</ul>
+  </div>
+{% endif %}
+
+{% if not accion and not normas %}
+  <div class="tarjeta vacio-grande">
+    <p>No hay normas en estado «No Cumple» o «En Proceso». Registre primero un seguimiento de cumplimiento.</p>
+    <a class="btn btn-primario" href="{{ url_for('cumplimiento.index') }}">Ir a Cumplimiento</a>
+  </div>
+{% else %}
+<form class="tarjeta formulario" method="post" novalidate data-validar>
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <div class="grid-2">
+    <div class="campo-grupo span-2">
+      <label for="norma">Norma asociada *</label>
+      {% if accion %}
+        <input class="campo" value="{{ accion.norma }}" disabled>
+      {% else %}
+        <select id="norma" name="norma" class="campo" required>
+          <option value="">— Seleccione una norma —</option>
+          {% for n in normas %}<option value="{{ n.id_norma }}" {{ 'selected' if v.norma == n.id_norma|string }}>{{ n.nombre_tipo_norma }} {{ n.numero }}/{{ n.anio }} — {{ n.ultimo_estado_cumplimiento }}</option>{% endfor %}
+        </select>
+      {% endif %}
+    </div>
+    <div class="campo-grupo span-2">
+      <label for="descripcion">Descripción de la acción *</label>
+      <textarea id="descripcion" name="descripcion" class="campo" rows="3" required data-regla="desc" data-nombre="Descripción de la acción"
+                placeholder="¿Qué medida se adoptará para corregir el incumplimiento?">{{ v.descripcion }}</textarea>
+    </div>
+    <div class="campo-grupo">
+      <label for="responsable">Responsable *</label>
+      <input id="responsable" name="responsable" class="campo" value="{{ v.responsable }}" maxlength="150" required
+             data-regla="texto" data-nombre="Responsable" placeholder="Nombre del responsable">
+    </div>
+    <div class="campo-grupo">
+      <label for="fecha">Fecha límite *</label>
+      <input id="fecha" name="fecha" type="date" class="campo" value="{{ v.fecha }}" required>
+    </div>
+    <div class="campo-grupo {{ '' if accion else 'span-2' }}">
+      <label for="articulo">Artículo relacionado</label>
+      <input id="articulo" name="articulo" class="campo" value="{{ v.articulo }}" maxlength="200"
+             data-regla="desc" data-nombre="Artículo relacionado" placeholder="Ej: Art. 2.2.4.6.8 (opcional)">
+    </div>
+    {% if accion %}
+    <div class="campo-grupo">
+      <label for="estado">Estado de avance *</label>
+      <select id="estado" name="estado" class="campo" required>
+        {% for id, nombre in estados %}<option value="{{ id }}" {{ 'selected' if v.estado == id|string }}>{{ nombre }}</option>{% endfor %}
+      </select>
+      <small class="ayuda">Al marcarla «Cerrada» ya no podrá editarse ni eliminarse.</small>
+    </div>
+    {% else %}
+    <div class="campo-grupo span-2"><small class="ayuda">Estado inicial: <strong>Pendiente</strong>.</small></div>
+    {% endif %}
+    {% if pedir_confirmacion %}
+    <div class="campo-grupo span-2 alerta alerta-err">
+      <label><input type="checkbox" name="confirmar" value="1"> Confirmo que deseo registrar la acción con una fecha límite que ya está vencida.</label>
+    </div>
+    {% endif %}
+  </div>
+  <div class="pie-form">
+    <a class="btn" href="{{ url_for('acciones.lista') }}">&#10005; Cancelar</a>
+    <button class="btn btn-primario" type="submit">&#128190; {{ 'Actualizar acción' if accion else 'Guardar acción' }}</button>
+  </div>
+</form>
+{% endif %}
+{% endblock %}

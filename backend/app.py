@@ -24,6 +24,7 @@ from flask import Flask, abort, request, session  # noqa: E402
 
 from config.settings import APP_CONFIG  # noqa: E402
 from db.connection import init_pool  # noqa: E402
+from services.accion_service import AccionService  # noqa: E402
 from services.auditoria_service import AuditoriaService  # noqa: E402
 from services.auth_service import AuthService  # noqa: E402
 from services.cumplimiento_service import CumplimientoService  # noqa: E402
@@ -52,6 +53,7 @@ def create_app() -> Flask:
         "normas": NormaService(auth),
         "cumplimiento": CumplimientoService(auth),
         "auditoria": AuditoriaService(),
+        "acciones": AccionService(auth),
         "reportes": ReporteService(auth),
     }
 
@@ -89,11 +91,13 @@ def create_app() -> Flask:
     from routes.dashboard import bp as bp_dashboard
     from routes.normas import bp as bp_normas
     from routes.cumplimiento import bp as bp_cumplimiento
+    from routes.acciones import bp as bp_acciones
     from routes.auditoria import bp as bp_auditoria
     from routes.reportes import bp as bp_reportes
     app.register_blueprint(bp_dashboard)
     app.register_blueprint(bp_normas)
     app.register_blueprint(bp_cumplimiento)
+    app.register_blueprint(bp_acciones)
     app.register_blueprint(bp_auditoria)
     app.register_blueprint(bp_reportes)
 

@@ -293,3 +293,8 @@ td form { margin: 0; }
   .tabla td.texto-largo { flex-direction: column; align-items: flex-start; text-align: left; }
   .truncar { white-space: normal; }
 }
+
+/* Acciones correctivas: alerta visual por plazo vencido (RF-013) */
+.tabla tr.fila-vencida td { background: #fdecea; }
+.enc-tarjeta { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.enc-tarjeta h2 { margin: 0; }

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block titulo %}Acciones correctivas{% endblock %}
+{% block contenido %}
+<div class="encabezado">
+  <div>
+    <h1 class="con-barra">Acciones correctivas</h1>
+    <p class="sub">Medidas adoptadas frente a incumplimientos normativos. Las acciones con plazo vencido se resaltan en rojo.</p>
+  </div>
+  <div class="acciones-enc">
+    <a class="btn btn-primario" href="{{ url_for('acciones.nueva') }}">+ Nueva acción</a>
+  </div>
+</div>
+
+<form class="barra-filtros" method="get">
+  <select name="estado" class="campo" aria-label="Estado">
+    <option value="">Todos los estados</option>
+    {% for id, nombre in estados %}<option value="{{ id }}" {{ 'selected' if filtros.estado == id }}>{{ nombre }}</option>{% endfor %}
+  </select>
+  <input type="text" name="responsable" value="{{ filtros.responsable }}" placeholder="Responsable" class="campo">
+  <select name="norma" class="campo" aria-label="Norma">
+    <option value="">Todas las normas</option>
+    {% for n in normas %}<option value="{{ n.id_norma }}" {{ 'selected' if filtros.norma == n.id_norma }}>{{ n.nombre_tipo_norma }} {{ n.numero }}/{{ n.anio }}</option>{% endfor %}
+  </select>
+  <button class="btn btn-primario" type="submit">&#128269; Filtrar</button>
+  <a class="btn btn-texto" href="{{ url_for('acciones.lista') }}">&#10005; Limpiar</a>
+</form>
+{% if error %}<p class="error-texto">{{ error }}</p>{% endif %}
+
+{% if acciones is not none %}
+<p class="conteo">{{ acciones|length }} acción(es) correctiva(s)</p>
+  {% if acciones %}
+  <div class="tabla-envoltura">
+    <table class="tabla">
+      <thead><tr><th>Código</th><th>Norma</th><th>Descripción</th><th>Responsable</th><th>Plazo</th><th>Estado</th><th class="centro">Acciones</th></tr></thead>
+      <tbody>
+      {% for a in acciones %}
+        <tr class="{{ 'fila-vencida' if a.vencida }}">
+          <td data-th="Código"><strong>{{ a.codigo }}</strong></td>
+          <td data-th="Norma"><a class="enlace-fuerte" href="{{ url_for('normas.detalle', id_norma=a.id_norma) }}">{{ a.norma }}</a></td>
+          <td data-th="Descripción" class="texto-largo">{{ a.descripcion }}{% if a.articulo_relacionado_texto %}<br><small>Art.: {{ a.articulo_relacionado_texto }}</small>{% endif %}</td>
+          <td data-th="Responsable">{{ a.nombre_responsable or '—' }}</td>
+          <td data-th="Plazo">{{ a.fecha_compromiso|fecha }}{% if a.fecha_cierre %}<br><small>Cerrada: {{ a.fecha_cierre|fecha }}</small>{% endif %}</td>
+          <td data-th="Estado">
+            <span class="badge badge-{{ {'Cerrada': 'ok', 'En Proceso': 'warn'}.get(a.estado, 'neutral') }}">{{ a.estado }}</span>
+            {% if a.vencida %}<span class="badge badge-err" title="El plazo ya venció y la acción no está cerrada">&#9888; Vencida ({{ (hoy - a.fecha_compromiso).days }} d)</span>{% endif %}
+          </td>
+          <td data-th="Acciones" class="centro">
+            {% if a.estado != 'Cerrada' %}
+            <div class="iconos">
+              <a class="icono" href="{{ url_for('acciones.editar', id_accion=a.id_accion) }}" title="Editar esta acción" aria-label="Editar">
+                <svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></a>
+              <form method="post" action="{{ url_for('acciones.eliminar', id_accion=a.id_accion) }}"
+                    data-confirmar="Se eliminará definitivamente la acción correctiva {{ a.codigo }}. Esta acción no se puede deshacer."
+                    data-confirmar-titulo="Eliminar acción correctiva">
+                <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                <button class="icono icono-peligro" type="submit" title="Eliminar esta acción" aria-label="Eliminar">
+                  <svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></button>
+              </form>
+            </div>
+            {% else %}<small title="Las acciones cerradas hacen parte del historial formal y no se modifican">&#128274; Cerrada</small>{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="tarjeta vacio-grande">
+      <p>{% if filtros.estado or filtros.responsable or filtros.norma %}No hay acciones correctivas que coincidan con los filtros aplicados.{% else %}No hay acciones correctivas registradas. No hay datos disponibles.{% endif %}</p>
+    </div>
+  {% endif %}
+{% endif %}
+{% endblock %}

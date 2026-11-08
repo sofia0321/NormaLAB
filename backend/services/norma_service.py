@@ -4,6 +4,7 @@ from typing import Optional
 
 from db.connection import get_cursor
 from models.entities import LogAuditoria, Norma
+from repositories.accion_repository import AccionRepository
 from repositories.auditoria_repository import AuditoriaRepository
 from repositories.norma_repository import NormaRepository
 from services.auth_service import AuthService
@@ -111,6 +112,12 @@ class NormaService:
         norma = self._repo.obtener_por_id(id_norma)
         if not norma:
             raise ValidacionError(f"No existe una norma con id {id_norma}.")
+        # RF-016: no se elimina una norma con acciones correctivas Pendientes o En Proceso.
+        abiertas = AccionRepository().contar_abiertas_por_norma(id_norma)
+        if abiertas:
+            raise ValidacionError(
+                f"No es posible eliminar la norma: tiene {abiertas} acción(es) correctiva(s) en estado "
+                "'Pendiente' o 'En Proceso'. Ciérrelas o elimínelas antes de continuar.")
         usuario = self._auth.obtener_usuario_actual()
         # Primero se elimina y SOLO si tuvo éxito se audita: el log es inmutable, así que
         # no puede quedar un registro de una eliminación que en realidad falló.
