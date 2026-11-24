@@ -11,7 +11,7 @@ import { colores } from './theme';
 import DetalleNormaScreen from './screens/DetalleNormaScreen';
 import { Norma } from './utils/validaciones';
 
-type Pantalla = 'dashboard' | 'normas' | 'crear' | 'detalle';
+type Pantalla = 'dashboard' | 'normas' | 'crear' | 'detalle' | 'editar';
 
 function Aplicacion() {
   const insets = useSafeAreaInsets();
@@ -34,6 +34,8 @@ function Aplicacion() {
       if (pantalla === 'crear') { setPantalla('normas'); return true; }
       if (pantalla === 'normas') { setPantalla('dashboard'); return true; }
       if (pantalla === 'detalle') { setPantalla('normas'); return true; }
+      if (pantalla === 'editar') { setPantalla('detalle'); return true; }
+
       return false;
     });
     return () => sub.remove();
@@ -63,10 +65,19 @@ function Aplicacion() {
         {pantalla === 'detalle' && normaSeleccionada && (
           <DetalleNormaScreen
             norma={normaSeleccionada}
-            onVolver={() => setPantalla('normas')}
-            onEliminada={(m) => { setMensaje(m); setPantalla('normas'); }}
+              onVolver={() => setPantalla('normas')}
+              onEditar={() => setPantalla('editar')}
+              onEliminada={(m) => { setMensaje(m); setPantalla('normas'); }}
           />
         )}
+        {pantalla === 'editar' && normaSeleccionada && (
+            <CrearNormaScreen
+              normaEditar={normaSeleccionada}
+              onCancelar={() => setPantalla('detalle')}
+              onGuardada={(m) => { setMensaje(m); setPantalla('normas'); }}
+            />
+          )}
+          
       </View>
       <MenuLateral
         abierto={menuAbierto}

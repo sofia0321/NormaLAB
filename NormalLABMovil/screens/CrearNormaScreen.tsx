@@ -8,11 +8,12 @@ import Select from '../components/Select';
 import Tarjeta from '../components/Tarjeta';
 import Texto from '../components/Texto';
 import { FRECUENCIAS, TIPOS_NORMA } from '../data/catalogos';
-import { ErrorDeValidacion, registrarNorma } from '../storage/normasStorage';
+import { ErrorDeValidacion, actualizarNorma, registrarNorma } from '../storage/normasStorage';
 import { colores } from '../theme';
-import { ErroresNorma, FormularioNorma } from '../utils/validaciones';
+import { ErroresNorma, FormularioNorma, Norma } from '../utils/validaciones';
 
 interface Props {
+  normaEditar?: Norma;
   onCancelar: () => void;
   onGuardada: (mensaje: string) => void;
 }
@@ -23,9 +24,19 @@ const INICIAL: FormularioNorma = {
   frecuencia: '', responsable: '', exigencia: '', evidencia: '',
 };
 
-export default function CrearNormaScreen({ onCancelar, onGuardada }: Props) {
+// Convierte una norma guardada en los textos que espera el formulario.
+function desdeNorma(n: Norma): FormularioNorma {
+  return {
+    tipo: n.tipo, numero: n.numero, anio: String(n.anio),
+    entidad: n.entidad === 'Sin especificar' ? '' : n.entidad,
+    descripcion: n.descripcion ?? '', frecuencia: n.frecuencia ?? '',
+    responsable: n.responsable ?? '', exigencia: n.exigencia ?? '', evidencia: n.evidencia ?? '',
+  };
+}
+
+export default function CrearNormaScreen({ normaEditar, onCancelar, onGuardada }: Props) {
   const insets = useSafeAreaInsets();
-  const [valores, setValores] = useState<FormularioNorma>(INICIAL);
+  const [valores, setValores] = useState<FormularioNorma>(normaEditar ? desdeNorma(normaEditar) : INICIAL);
   const [errores, setErrores] = useState<ErroresNorma>({});
   const [intento, setIntento] = useState(false);
   const [guardando, setGuardando] = useState(false);
@@ -34,13 +45,16 @@ export default function CrearNormaScreen({ onCancelar, onGuardada }: Props) {
     setValores((prev) => ({ ...prev, [campo]: v }));
     if (errores[campo] || errores.general) setErrores((prev) => ({ ...prev, [campo]: undefined, general: undefined }));
   };
+
   const guardar = async () => {
     if (guardando) return;
     setGuardando(true);
     setIntento(true);
     try {
-      const norma = await registrarNorma(valores);
-      onGuardada(`Norma «${norma.titulo}» registrada correctamente.`);
+      const norma = normaEditar
+        ? await actualizarNorma(normaEditar.id, valores)
+        : await registrarNorma(valores);
+      onGuardada(`Norma «${norma.titulo}» ${normaEditar ? 'actualizada' : 'registrada'} correctamente.`);
     } catch (e) {
       if (e instanceof ErrorDeValidacion) setErrores(e.errores);
       else setErrores({ general: 'No fue posible guardar: la operación fue cancelada y no se almacenó ningún dato.' });
@@ -59,8 +73,10 @@ export default function CrearNormaScreen({ onCancelar, onGuardada }: Props) {
       >
         <Encabezado
           conBarra
-          titulo="Registrar nueva norma"
-          sub="Complete los campos requeridos para registrar la norma. Los campos con * son obligatorios."
+          titulo={normaEditar ? 'Editar norma' : 'Registrar nueva norma'}
+          sub={normaEditar
+            ? 'Modifique los campos que necesite. Los campos con * son obligatorios.'
+            : 'Complete los campos requeridos para registrar la norma. Los campos con * son obligatorios.'}
         />
 
         {intento && mensajes.length > 0 ? (
@@ -106,7 +122,12 @@ export default function CrearNormaScreen({ onCancelar, onGuardada }: Props) {
 
           <View style={styles.pie}>
             <Boton etiqueta="✕ Cancelar" onPress={onCancelar} />
-            <Boton variante="primario" etiqueta={guardando ? 'Guardando…' : '💾 Guardar norma'} onPress={guardar} deshabilitado={guardando} />
+            <Boton
+              variante="primario"
+              etiqueta={guardando ? 'Guardando…' : normaEditar ? '💾 Guardar cambios' : '💾 Guardar norma'}
+              onPress={guardar}
+              deshabilitado={guardando}
+            />
           </View>
         </Tarjeta>
       </ScrollView>
