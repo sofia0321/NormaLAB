@@ -39,9 +39,39 @@ export async function registrarNorma(f: FormularioNorma): Promise<Norma> {
   await AsyncStorage.setItem(CLAVE, JSON.stringify([norma, ...existentes]));
   return norma;
 }
+
 /** Elimina una norma por su id y guarda la lista que queda. */
 export async function eliminarNorma(id: string): Promise<void> {
   const existentes = await cargarNormas();
   const restantes = existentes.filter((n) => n.id !== id);
   await AsyncStorage.setItem(CLAVE, JSON.stringify(restantes));
+}
+
+/** Valida y reemplaza una norma existente, conservando su id y fecha de registro. */
+export async function actualizarNorma(id: string, f: FormularioNorma): Promise<Norma> {
+  const existentes = await cargarNormas();
+  const actual = existentes.find((n) => n.id === id);
+  if (!actual) throw new Error('La norma ya no existe');
+
+  // Se compara solo con las otras normas, para que no choque consigo misma.
+  const otras = existentes.filter((n) => n.id !== id);
+  const errores = validarNorma(f, otras);
+  if (Object.keys(errores).length > 0) throw new ErrorDeValidacion(errores);
+
+  const vacioANulo = (v: string) => (v.trim() ? v.trim() : undefined);
+  const actualizada: Norma = {
+    ...actual,
+    tipo: f.tipo.trim(),
+    numero: f.numero.trim(),
+    anio: parseInt(f.anio, 10),
+    titulo: `${f.tipo.trim()} ${f.numero.trim()} de ${parseInt(f.anio, 10)}`,
+    entidad: f.entidad.trim() || 'Sin especificar',
+    descripcion: vacioANulo(f.descripcion),
+    frecuencia: vacioANulo(f.frecuencia),
+    responsable: vacioANulo(f.responsable),
+    exigencia: vacioANulo(f.exigencia),
+    evidencia: vacioANulo(f.evidencia),
+  };
+  await AsyncStorage.setItem(CLAVE, JSON.stringify(existentes.map((n) => (n.id === id ? actualizada : n))));
+  return actualizada;
 }

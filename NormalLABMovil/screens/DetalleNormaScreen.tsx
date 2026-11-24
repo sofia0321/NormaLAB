@@ -12,9 +12,9 @@ import { Norma } from '../utils/validaciones';
 interface Props {
   norma: Norma;
   onVolver: () => void;
+  onEditar: () => void;
   onEliminada: (mensaje: string) => void;
 }
-
 function Dato({ etiqueta, valor }: { etiqueta: string; valor?: string | number }) {
   return (
     <View style={styles.dato}>
@@ -24,7 +24,7 @@ function Dato({ etiqueta, valor }: { etiqueta: string; valor?: string | number }
   );
 }
 
-export default function DetalleNormaScreen({ norma, onVolver, onEliminada }: Props) {
+export default function DetalleNormaScreen({ norma, onVolver, onEditar, onEliminada }: Props) {
   const insets = useSafeAreaInsets();
 
   const confirmarEliminar = () => {
@@ -72,6 +72,7 @@ export default function DetalleNormaScreen({ norma, onVolver, onEliminada }: Pro
       </Tarjeta>
 
       <View style={styles.acciones}>
+        <Boton variante="primario" etiqueta="✏️Editar norma" onPress={onEditar} />
         <Boton variante="texto" etiqueta="← Volver a la lista" onPress={onVolver} />
         <Pressable style={styles.botonEliminar} onPress={confirmarEliminar}>
           <Texto style={styles.textoEliminar}>Eliminar norma</Texto>
