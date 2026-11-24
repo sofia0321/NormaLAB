@@ -39,3 +39,9 @@ export async function registrarNorma(f: FormularioNorma): Promise<Norma> {
   await AsyncStorage.setItem(CLAVE, JSON.stringify([norma, ...existentes]));
   return norma;
 }
+/** Elimina una norma por su id y guarda la lista que queda. */
+export async function eliminarNorma(id: string): Promise<void> {
+  const existentes = await cargarNormas();
+  const restantes = existentes.filter((n) => n.id !== id);
+  await AsyncStorage.setItem(CLAVE, JSON.stringify(restantes));
+}

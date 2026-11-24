@@ -8,14 +8,17 @@ import CrearNormaScreen from './screens/CrearNormaScreen';
 import DashboardScreen from './screens/DashboardScreen';
 import ListaNormasScreen from './screens/ListaNormasScreen';
 import { colores } from './theme';
+import DetalleNormaScreen from './screens/DetalleNormaScreen';
+import { Norma } from './utils/validaciones';
 
-type Pantalla = 'dashboard' | 'normas' | 'crear';
+type Pantalla = 'dashboard' | 'normas' | 'crear' | 'detalle';
 
 function Aplicacion() {
   const insets = useSafeAreaInsets();
   const [pantalla, setPantalla] = useState<Pantalla>('dashboard');
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [mensaje, setMensaje] = useState<string | null>(null);
+  const [normaSeleccionada, setNormaSeleccionada] = useState<Norma | null>(null);
 
   // El aviso de éxito desaparece solo a los 4 segundos.
   useEffect(() => {
@@ -30,6 +33,7 @@ function Aplicacion() {
       if (menuAbierto) { setMenuAbierto(false); return true; }
       if (pantalla === 'crear') { setPantalla('normas'); return true; }
       if (pantalla === 'normas') { setPantalla('dashboard'); return true; }
+      if (pantalla === 'detalle') { setPantalla('normas'); return true; }
       return false;
     });
     return () => sub.remove();
@@ -38,16 +42,29 @@ function Aplicacion() {
   const seccionActiva: Seccion = pantalla === 'dashboard' ? 'dashboard' : 'normas';
   const ir = (p: Pantalla) => { setPantalla(p); setMenuAbierto(false); };
 
-  return (
+    return (
     <View style={styles.raiz}>
       <TopBar onMenu={() => setMenuAbierto((a) => !a)} onInicio={() => ir('dashboard')} />
       <View style={{ flex: 1 }}>
         {pantalla === 'dashboard' && <DashboardScreen />}
-        {pantalla === 'normas' && <ListaNormasScreen mensaje={mensaje} onNueva={() => setPantalla('crear')} />}
+        {pantalla === 'normas' && (
+          <ListaNormasScreen
+            mensaje={mensaje}
+            onNueva={() => setPantalla('crear')}
+            onVerDetalle={(n) => { setNormaSeleccionada(n); setPantalla('detalle'); }}
+          />
+        )}
         {pantalla === 'crear' && (
           <CrearNormaScreen
             onCancelar={() => setPantalla('normas')}
             onGuardada={(m) => { setMensaje(m); setPantalla('normas'); }}
+          />
+        )}
+        {pantalla === 'detalle' && normaSeleccionada && (
+          <DetalleNormaScreen
+            norma={normaSeleccionada}
+            onVolver={() => setPantalla('normas')}
+            onEliminada={(m) => { setMensaje(m); setPantalla('normas'); }}
           />
         )}
       </View>

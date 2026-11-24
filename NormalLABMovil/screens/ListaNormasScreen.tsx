@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, TextInput, View, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Badge from '../components/Badge';
 import Boton from '../components/Boton';
@@ -12,9 +12,11 @@ import { cargarNormas } from '../storage/normasStorage';
 import { colores, fuente, radio, sombra } from '../theme';
 import { Norma } from '../utils/validaciones';
 
+
 interface Props {
   mensaje: string | null;
   onNueva: () => void;
+  onVerDetalle: (norma: Norma) => void;
 }
 
 function Fila({ etiqueta, children }: { etiqueta: string; children: React.ReactNode }) {
@@ -26,12 +28,13 @@ function Fila({ etiqueta, children }: { etiqueta: string; children: React.ReactN
   );
 }
 
-export default function ListaNormasScreen({ mensaje, onNueva }: Props) {
+export default function ListaNormasScreen({ mensaje, onNueva, onVerDetalle }: Props) {
   const insets = useSafeAreaInsets();
   const [normas, setNormas] = useState<Norma[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState('');
   const [tipo, setTipo] = useState('');
+
 
   useEffect(() => {
     cargarNormas().then(setNormas).catch(() => setError('No fue posible cargar las normas. Intente nuevamente.'));
@@ -88,13 +91,13 @@ export default function ListaNormasScreen({ mensaje, onNueva }: Props) {
           <Texto style={styles.conteo}>Mostrando {filtradas.length} de {normas.length} normas</Texto>
           {filtradas.length > 0 ? (
             filtradas.map((n) => (
-              <View key={n.id} style={styles.tarjetaNorma}>
+              <Pressable key={n.id} style={styles.tarjetaNorma} onPress={() => onVerDetalle(n)}>
                 <Fila etiqueta="Norma"><Texto style={styles.enlace}>{n.tipo} {n.numero}/{n.anio}</Texto></Fila>
                 <Fila etiqueta="Tipo"><Texto style={styles.valor}>{n.tipo}</Texto></Fila>
                 <Fila etiqueta="Número / Año"><Texto style={styles.valor}>{n.numero}/{n.anio}</Texto></Fila>
                 <Fila etiqueta="Entidad"><Texto style={styles.valor}>{n.entidad}</Texto></Fila>
                 <Fila etiqueta="Cumplimiento"><Badge texto="Sin evaluar" tipo="neutral" alinear="flex-end" /></Fila>
-              </View>
+              </Pressable>
             ))
           ) : (
             <Tarjeta style={{ alignItems: 'center', paddingVertical: 40 }}>
